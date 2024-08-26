@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<title>Rovibrational Spectra of diatomic molecules.</title>
+	<style>
+		body {
+			color: White;
+			background-color: DimGrey;
+			vertical-align: center;}
+
+		#main {
+			display: grid;
+			grid-template-columns: 575px 225px;
+			grid-template-rows: auto auto auto;
+			grid-template-areas:
+				"energy_level_diagram constants"
+				"line_buttons line_buttons"
+				"spectrum spectrum";}
+		#energy_level_diagram {
+			grid-area: energy_level_diagram;
+			text-align: center;}		
+		#constants {
+			display: grid;
+			grid-area: constants;
+			text-align: left;}
+
+		#line_buttons {
+			display: grid;
+			grid-area: line_buttons;
+			text-align: left;}
+		#spectrum {
+			display: grid;
+			grid-area: spectrum;
+			text-align: center;}		
+		
+		#ELD_canvas{background-color: white;
+			    color: white;
+			    border: 10px;}
+		#spectrum_canvas{background-color: White;}
+
+		input::-webkit-outer-spin-button,
+		input::-webkit-inner-spin-button {
+  		-webkit-appearance: none;
+  		margin: 0;}
+
+		input[type=number] {
+			text-align: center; 
+			float:left;
+			width: 35px
+			-moz-appearance: textfield;}
+		
+		button {text-align: center;
+			width: 175px;
+			height: 22px;
+			float:left;}
+
+		label { padding-right: 5px;
+		        display: block;
+			float: left;}
+
+		hr {border: none;}
+	</style>
+</head>
+
+<body>
+	<h1 style = 'width: 800px' >Visualize rovibrational energy levels and calculate transition frequencies for diatomic molecules.</h1>
+	<div style="font-family: 'cambria math'; width: 800px;"><ul>
+		<li>This app allows you to calculate energy levels, transition frequencies and a sample spectrum for a linear
+		    diatomic molecule undergoing rovibrational transitions. You must enter masses for the two atoms of the 
+		    molcule, and you may then enter either a spring constant or frequency, and a bond length or vibrational constant.
+                    You may then "draw the energy level diagram" including calculated frequencies.</li>
+		<li>Vibrational energies are calculated by E<sub>v</sub> = hc&nu;&#772;(v+&frac12;) where &nu;&#772; is the 
+		    vibrational frequency in wavenumbers (cm<sup>-1</sup>).</li>
+		<li>Rotational energies are calculated by E<sub>J</sub> = hcB&#772;J(J+1) where B&#772; is the rotational constant
+		    given in wavenumbers (cm<sup>-1</sup>), B&#772; = &hbar;<sup>2</sup> / (2hc&mu;r<sup>2</sup>) and r is the bond length.</li>
+		<li>The total energy for a rovibrational level is the sum of vibrational and rotational energies. This may then be converted to wavenumbers 
+		    by dividing by <em>hc</em>. The "energy" levels and the transition frequencies in the figure below are give in wavenumbers, as is standard.</li>
+		<li>The temperature is needed to calculate the peak intensities on the spectrum; intensities depend on the number of molecules in each 
+	            rotational state, <em>N<sub>J</sub></em>, which obeys a Boltmann distribution: N<sub>J</sub>/N<sub>o</sub> = (2J+1)e<sup>-B&#772;J(J+1)/kT</sup>.
+	</ul></div>
+
+	<section id = "main">
+		<div id = "energy_level_diagram">
+			<canvas id="ELD_canvas" height=550px width=550px style="background-color: white"> </canvas>
+			<button id="draw_diagram_b" onclick="draw_diagram()" style="width:225px;" disabled>
+				Draw energy level diagram.</button>
+			<button id="clear_diagram_b" onclick="clear_canvas()" style="width:300px;" disabled>
+				Clear energy level diagram and spectrum.</button>
+			<br>
+		</div>
+		<div id="constants">
+			<div>
+			<label for="temp">T for experiment (K): </label>
+			<input type="number" id="temp" placeholder=0 onwheel="this.blur()" style="width: 30px" />
+			</div>
+			<div>
+			<label for="mass_1">Mass of atom 1 (amu): </label>
+			<input type="number" id="mass_1" placeholder=0 onwheel="this.blur()" style="width: 30px" />
+		
+			<label>Mass of atom 2 (amu): </label>
+			<input type="number" id="mass_2" placeholder=0 onwheel="this.blur()" style="width: 30px" >
+
+			<button id="red_mass_b" onclick="calc_red_mass()">    Reduced mass.    </button>
+			<input type="number" id="red_mass" placeholder=0 onwheel="this.blur()" style="width: 175px" >
+			<label style="width: 30px"> kg.</label>
+			</div>
+			<div>
+			<label>Spring Constant (kg s<sup>-2</sup>): </label>
+			<input type="number" id="spring_const" placeholder=0 onwheel="this.blur()" style="width: 30px" >
+			<button id="freq_b" onclick="calc_freq()" disabled>    Calculate frequency.    </button>
+			<br><input type="number" id="freq" placeholder=0 onwheel="this.blur()" style="width: 175px" > 
+			<label style = "padding-right: 0px;">cm<sup>-1</sup>.</label>
+			</div>
+			<div>
+			<label>Bond length (&angst;): </label>
+			<input type="number" id="bond_length" placeholder=0 onwheel="this.blur()" style="width: 30px" >
+			<br><button id="rot_b" onclick="calc_B()" disabled style="width:200px">Calculate Rotational Constant.</button>
+			<br><input type="number" id="B" placeholder=0 onwheel="this.blur()" style="width: 175px" > 
+			<label style = "padding-right: 0px;">cm<sup>-1</sup>.</label>
+			</div>
+			<div>
+			Alternately, enter the frequency and/or rotational constant (in the correct units) and convert to 
+			spring constant or bond length. Both require the masses to be input.
+			<button id="k_b" onclick="calc_k()" disabled>Calculate Spring Constant.</button>
+			<button id="r_b" onclick="calc_r()" disabled>Calculate Bond Length.</button>
+			</div>
+		</div>
+		<div id="line_buttons">
+			<div>
+			<label style = "padding-right: 0px;">R-branch:</label> 
+			<button id="draw_line_r0" onclick="draw_line(1,0)" style="width: 35px"> R0 </button>
+			<button id="draw_line_r1" onclick="draw_line(1,1)" style="width: 35px"> R1 </button>
+			<button id="draw_line_r2" onclick="draw_line(1,2)" style="width: 35px"> R2 </button>
+			<button id="draw_line_r3" onclick="draw_line(1,3)" style="width: 35px"> R3 </button>
+			<button id="draw_line_r4" onclick="draw_line(1,4)" style="width: 35px"> R4 </button>
+			<label style = "padding-right: 0px;">Q-branch:</label> 
+			<button id="draw_line_q" onclick="draw_line(0,0)" style="width: 35px"> Q0 </button>
+			<label style = "padding-right: 0px;">P-branch:</label> 
+			<button id="draw_line_p1" onclick="draw_line(-1,1)" style="width: 35px"> P1 </button>
+			<button id="draw_line_p2" onclick="draw_line(-1,2)" style="width: 35px"> P2 </button>
+			<button id="draw_line_p3" onclick="draw_line(-1,3)" style="width: 35px"> P3 </button>
+			<button id="draw_line_p4" onclick="draw_line(-1,4)" style="width: 35px"> P4 </button>
+			<button id="draw_line_p5" onclick="draw_line(-1,5)" style="width: 35px"> P5 </button>
+			</div>
+		</div>
+		<div id = "spectrum">
+			<canvas id="spectrum_canvas" height=450px width=750px style="background-color: white"> </canvas>
+		</div>
+	</section>
+	<p style = 'width: 800px'>This is the work of Dr. Mauricio Cafiero and may be used widely though attribution is appreciated.</p>
+
+</body>
+
+<script>
+
+//hide the peak buttons for now; shows after the spectrum is displayed ====================================================
+
+document.getElementById('line_buttons').style.visibility="hidden"; 
+
+var level_width = 210;					//width of energy levels in diagram 
+var level_space = 9					//spacing multiplier for energy levels in diagram
+var line_space = 15					//spacing multiplier for peaks in spectrum
+var intensity_multiplier = 20				//intensity mutiplier for peaks in spectrum
+var x_start = 60					//x location in 550 x 550 canvas where fist energy level starts 
+var y_start = 520					//y location in 550 x 500 canvas where first energy level starts
+var max_j = 5						//how many rotational levels to draw per vibrational level
+var h = 6.626E-34, c = 3E+8				//Planck's constant and speed of light
+var top_diag = y_start - 2*max_j*(max_j+1)*level_space;	//y coordinate for the start of the v=1 energy levels
+var x_vib_label = x_start + level_width +150;		//x coordinate for the start of the label for transition energies
+var y_vib_label = top_diag + 70;			//y coordinate for the start of the label for transition energies
+var axis_y_loc = 425;					//y coordinate for the start of the x-axis on the spectrum
+var spec_center_x = 375;				//x coordinate for the center of the spectrum
+var spec_center_y = axis_y_loc;				//y coordinate for the center of the spectrum
+var peak_space = 3;					//multiplier for peak spacing, to make it readable
+var k_b = (1.380649E-23)/(100*h*c)			// Boltzmann's constant in cm^-1
+
+
+function draw_diagram() {
+
+//sets up canvas for energy level diagram, color is black =================================================================
+
+	let plot = document.getElementById("ELD_canvas");
+	const ec = plot.getContext("2d");
+	ec.strokeStyle = "#000000";
+	ec.fillStyle = "#000000";
+	ec.strokeRect(0,0,550,550);
+	ec.font = "14px Arial";
+
+	freq = document.getElementById('freq').valueAsNumber;
+	B = document.getElementById('B').valueAsNumber;
+	temp = document.getElementById('temp').valueAsNumber;
+
+//Above gets temperature, frequency and rotational constant; below checks for these and throws error if not present =======
+
+	if (isNaN(B) || isNaN(freq) || isNaN(temp)){
+		alert("Please enter or calculate temperature, rotational constant and frequency!");
+		return false;}
+
+//Draw energy levels and labels, calculate rovibrational energies in cm^-1 for labels =====================================
+//draws and labels v =0 level
+
+	var x1 = x_start;
+	var y1 = y_start;
+	
+	var x2 = x_start + level_width;
+	var y2 = y1;
+	
+	for (let i = 1; i < max_j+1; i++){
+		ec.beginPath();
+		ec.moveTo(x1,y1);
+		ec.lineTo(x2,y2);
+		ec.stroke();
+		var j = i-1;
+		var E_J = 0.5*freq + B*j*(j+1)
+		E_J = Math.round(E_J*100)/100
+		if (i == 1){
+			ec.fillText("J="+(j)+", \u03BD ="+E_J, x2+10,y2+10);}
+		else{
+			ec.fillText("J="+(j)+", \u03BD="+E_J, x2+10,y2+5);}
+		if(i==4){
+			ec.fillText("v = 0", 5,y2+10);}
+		y1 = y_start - i*(i+1)*level_space;
+		y2 = y1;
+	}
+
+//draws and labels v=1 level ==============================================================================================
+
+	var y_next = y1
+	
+	for (let i = 1; i < max_j+1; i++){
+
+		ec.beginPath();
+		ec.moveTo(x1,y1);
+		ec.lineTo(x2,y2);
+		ec.stroke();
+		var j = i-1;
+		var E_J = 1.5*freq + B*j*(j+1)
+		E_J = Math.round(E_J*100)/100
+		if (i == 1){
+			ec.fillText("J="+(j)+", \u03BD="+E_J, x2+10,y2+10);}
+		else{
+			ec.fillText("J="+(j)+", \u03BD="+E_J, x2+10,y2+5);}
+		if(i==4){
+			ec.fillText("v = 1", 5,y2+10);}
+		y1 = y_next - i*(i+1)*level_space;
+		y2 = y1;
+	}
+
+//write energy label and un-hide peak buttons =============================================================================
+
+	ec.fillText(" \u0394\u03BD (cm-1)", x_vib_label,y_vib_label);
+
+	document.getElementById('line_buttons').style.visibility="visible";
+
+//sets up canvas for spectrum, color is black =============================================================================
+// draws axis, labels axis and center
+
+	let plot2 = document.getElementById("spectrum_canvas");
+	sc = plot2.getContext("2d");
+	sc.strokeStyle = "#000000";
+	sc.strokeRect(0,0,750,450);
+	sc.font = "14px Arial";	
+
+	axis_y1 = axis_y_loc
+	axis_y2 = axis_y1
+	axis_x1 = 0
+	axis_x2 = spec_center_x*2.0
+	
+	sc.beginPath();
+	sc.moveTo(axis_x1,axis_y1);
+	sc.lineTo(axis_x2,axis_y2);
+	sc.stroke();
+
+	sc.beginPath();
+	sc.moveTo(axis_x2/2.0, axis_y_loc);
+	sc.lineTo(axis_x2/2.0, axis_y_loc-10);
+	sc.stroke();
+
+	sc.fillText("v (cm^-1) -->",axis_x1+5, axis_y1+15);
+	sc.fillText("v="+freq,spec_center_x, axis_y1+15);
+}
+
+
+function draw_line(branch,jval) {
+
+//get temperature, frequency and rotational constant. No need to check them as this only un-hides after diagram is drawn! =
+
+	freq = document.getElementById('freq').valueAsNumber;
+	B = document.getElementById('B').valueAsNumber;
+	temp = document.getElementById('temp').valueAsNumber;
+	kT = k_b*temp;
+
+//get canvas for energy level diagram. set to a different color for each branch (P=red, Q=green, R=violet) ================
+
+	let plot = document.getElementById("ELD_canvas");
+	ec = plot.getContext("2d");
+	ec.font = "14px Arial";
+	if (branch == 1){ec.strokeStyle = "#8C14DC";
+			 ec.fillStyle = "#8C14DC";}
+	else if (branch == -1){ec.strokeStyle = "#DC143C";
+			       ec.fillStyle = "#DC143C";}
+	else {ec.strokeStyle = "#14DC89";
+	      ec.fillStyle = "#14DC89";}
+
+//for the transition (branch-type, J value), calculate the start/end coordinates for line showing the transition ==========
+//calculate the rovibrational energy for the level; draw line and write energy
+
+	if (branch == 1) {
+		var x1 = x_start+(jval+1)*line_space;}
+	else if (branch == -1){
+		var x1 = x_start+0.5*level_width+(jval+1)*line_space;}
+	else{
+		var x1 = x_start+0.5*level_width;}
+		
+	var y1 = y_start-(jval)*(jval+1)*level_space;
+	
+	var x2 = x1;
+	if (branch == 1){
+		var y2 = y_start - (max_j*(max_j+1)*level_space)-(jval+2)*(jval+1)*level_space;
+	} else if (branch == -1){
+		var y2 = y_start - (max_j*(max_j+1)*level_space)-(jval-1)*jval*level_space;}
+	else {var y2 = y_start - (max_j*(max_j+1)*level_space);}
+	
+	ec.beginPath();
+	ec.moveTo(x1,y1);
+	ec.lineTo(x2,y2);
+	ec.stroke();
+
+	if (branch == 1) {
+		var delta_v = freq + (2.0*jval+2)*B;
+		delta_v = Math.round(delta_v*100)/100;
+		v_text = "R"+jval+": "+delta_v;
+		y_v = y_vib_label +40*(jval+1);}
+	else if (branch == 0){
+		var delta_v = freq;
+		delta_v = Math.round(delta_v*100)/100;
+		v_text = "Q"+jval+": "+delta_v;
+		y_v = y_vib_label + (max_j+1)*40;}
+	else{var delta_v = freq - (2.0*jval)*B;
+	     delta_v = Math.round(delta_v*100)/100;
+	     v_text = "P"+jval+": "+delta_v;
+	     y_v = y_vib_label +(max_j+1)*40+40*(jval+1);}
+	
+	ec.fillText(v_text, x_vib_label,y_v);
+
+//Get canvas for spectrum, use same colors as above =======================================================================
+
+	let plot2 = document.getElementById("spectrum_canvas");
+	sc = plot2.getContext("2d");
+	sc.strokeStyle = ec.strokeStyle
+	sc.fillStyle = ec.fillStyle
+	sc.font = "14px Arial";	
+
+// calculate the coordinates for the peak, calculate the line intensity (Boltzmann distribution); draw/label the peak =====
+
+	line_y1 = axis_y_loc;
+
+	rot_E = B*jval*(jval+1+1);
+	peak_intensity = (2*jval+1+1)*Math.exp(-rot_E/kT);
+	line_y2 = line_y1-175 - peak_intensity*intensity_multiplier;
+
+	if (branch == 1){
+		line_x1 = spec_center_x + (2.0*jval+2)*B*peak_space;
+		line_text = "R"+jval;}
+	else if (branch == -1){
+		line_x1 = spec_center_x - (2.0*jval)*B*peak_space;
+		line_text = "P"+jval;}
+	else {
+		line_x1 = spec_center_x;
+		line_y2 = line_y1;
+		line_text = "Q"+jval;}
+	line_x2 = line_x1;
+	
+	sc.beginPath();
+	sc.moveTo(line_x1,line_y1);
+	sc.lineTo(line_x2,line_y2);
+	sc.stroke();
+	sc.fillText(line_text,line_x1+2, line_y2-25)
+	
+}
+
+function clear_canvas(){
+
+//clear both canvases =====================================================================================================
+	
+	let plot = document.getElementById("ELD_canvas");
+	ec = plot.getContext("2d");
+	ec.clearRect(0, 0, ec.canvas.width, ec.canvas.height);
+
+	let plot2 = document.getElementById("spectrum_canvas");
+	sc = plot2.getContext("2d");
+	sc.clearRect(0, 0, sc.canvas.width, sc.canvas.height);
+}
+
+function calc_red_mass(){
+	mass1 = document.getElementById('mass_1').valueAsNumber;
+	mass2 = document.getElementById('mass_2').valueAsNumber;
+	
+//Above, get masses; below calculate reduced mass and assign to input box. ================================================
+
+	var red_mass = (1.66e-27)*(mass1*mass2)/(mass1+mass2);
+
+	document.getElementById('red_mass').value = red_mass;
+	
+//If a valid reduced mass is calculated, enable buttons to calculate all other values, ====================================
+//and enable button to draw energy level diagram. 
+
+	if (isNaN(red_mass)){
+		alert("Please enter masses");}
+	else {document.getElementById('freq_b').disabled=false;
+	      document.getElementById('rot_b').disabled=false;
+	      document.getElementById('k_b').disabled=false;
+	      document.getElementById('r_b').disabled=false;
+	      document.getElementById('draw_diagram_b').disabled=false;
+	      document.getElementById('clear_diagram_b').disabled=false;}
+}
+
+function calc_freq(){
+	var k_sc = document.getElementById('spring_const').valueAsNumber;
+	var rm = document.getElementById('red_mass').valueAsNumber;
+
+//Above, get spring constant and reduced mass; below, check to make sure spring ===========================================
+//constant has a value! then calculate and assign to input box. 
+
+	if (isNaN(k_sc)){
+		alert("Please enter spring constant!");}
+
+	var freq = Math.sqrt(k_sc/rm)/(2.0*c*100*Math.PI);
+	freq = Math.round(freq*100)/100
+
+	document.getElementById('freq').value = freq
+}
+
+function calc_B(){
+	var r = document.getElementById('bond_length').valueAsNumber;
+	var rm = document.getElementById('red_mass').valueAsNumber;
+
+//Above, get bond length and reduced mass; below, check to make sure bond length  =========================================
+//has a value! then calculate and assign to input box. 
+
+	if (isNaN(r)){
+		alert("Please enter bond length!");}
+
+	r = r*(1e-10);
+
+	var I = h/(8.0*Math.pow(Math.PI,2)*rm*Math.pow(r,2)*c*100);
+	I = Math.round(I*100)/100
+
+	document.getElementById('B').value = I
+}
+
+function calc_k(){
+	var freq = document.getElementById('freq').valueAsNumber;
+	var rm = document.getElementById('red_mass').valueAsNumber;
+
+//Above, get frequency and reduced mass; below, check to make sure frequency  =============================================
+//has a value! then calculate and assign to input box. 
+
+
+	if (isNaN(freq)){
+		alert("Please enter frequency!");}
+
+	sq_st = Math.PI*freq*c*100;
+	k_sc = 4.0*Math.pow(sq_st,2)*rm;
+	k_sc = Math.round(k_sc*100)/100;
+
+	document.getElementById('spring_const').value = k_sc
+}
+
+function calc_r(){
+	var B = document.getElementById('B').valueAsNumber;
+	var rm = document.getElementById('red_mass').valueAsNumber;
+
+//Above, get rotational constant and reduced mass; below, check to make sure rotational constant  =========================
+//has a value! then calculate and assign to input box. 
+
+	if (isNaN(B)){
+		alert("Please enter rotational constant!");}
+
+	sq_st = h/(B*100*c*8.0*rm)
+	r = Math.sqrt(sq_st)/Math.PI;
+	r = r/(1e-10)
+	r = Math.round(r*100)/100;
+
+	document.getElementById('bond_length').value = r
+}
+
+</script>
+
+</html>

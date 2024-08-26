@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<title>Data Analysis for the Benzene/Caffeine practical.</title>
+	<script language="JavaScript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/3.2.1/math.js"></script>
+	<style>
+		body {
+			color: White;
+			background-color: DimGrey;}
+
+		#main {
+			display: grid;
+			grid-template-columns: 400px 400px;
+			grid-template-rows: auto auto auto auto auto;
+			grid-template-areas:
+				"main_input points_storage"
+				"equations_1 equations_1"
+				"system_solver system_solver"
+				"plot_box_ben230 plot_box_caf230"
+				"plot_box_ben270 plot_box_caf270";}
+		#main_input {
+			grid-area: main_input;
+			vertical-align: middle;
+			text-align: center;}		
+		#points_storage {
+			display: grid;
+			grid-area: points_storage;}
+
+		#points_storage {
+			display: grid;
+			grid-template-columns: 190px 190px;
+			grid-template-rows: auto;
+			grid-template-areas:
+				"x_col y_col";}
+		#x_col {
+			display: grid;
+			display: block;
+			grid-area: x_col;
+			font-weight: bold;
+			text-align: center;}		
+		#y_col {
+			display: grid;
+			display: block;
+			grid-area: y_col;
+			font-weight: bold;
+			text-align: center;}
+		
+		#equations_1{
+			display: grid;
+			display: block;
+			grid-area: equations_1;
+			text-align: left;}
+		#system_solver{
+			display: grid;
+			display: block;
+			grid-area: system_solver;
+			text-align: center;
+			white-space: nowrap;}
+
+		#plot_ben230{background-color: White;}
+		#plot_caf230{background-color: White;}
+		#plot_ben270{background-color: White;}
+		#plot_caf270{background-color: White;}
+
+		#plot_box_ben230{
+			display: grid;
+			grid-area: plot_box_ben230;
+			justify-content: center;}
+		#plot_box_caf230{
+			display: grid;
+			grid-area: plot_box_caf230;
+			justify-content: center;}
+		#plot_box_ben270{
+			display: grid;
+			grid-area: plot_box_ben270;
+			justify-content: center;}
+		#plot_box_caf270{
+			display: grid;
+			grid-area: plot_box_caf270;
+			justify-content: center;}
+		
+		input::-webkit-outer-spin-button,
+		input::-webkit-inner-spin-button {
+  		-webkit-appearance: none;
+  		margin: 0;}
+		input[type=number] {
+			text-align: center; 
+			-moz-appearance: textfield;}
+		
+		button {text-align: center;
+			width: 150px}
+	</style>
+</head>
+
+<body>
+	<h1 style = 'width: 800px' >Perform linear regression and solve the system of equations for the Benzoic Acid/Caffeine practical.</h1>
+
+	<section id = "main">
+		<div id = "main_input"><p style = "text-align: left">
+		 	This app allows you to enter a set of <em>xy</em> data points (conc. versus absorbance)
+			for benzoic acid and caffeine at each of the two wavelengths and calculate the slope and
+			intercept of the best-fit line (for example, m<sub>230</sub><sup>caf</sup>, and b<sub>230</sub><sup>caf</sup>). 
+			It will then solve the system of equations for the concentration
+			of the unknown. </p>
+		
+			Enter the number of of <em>xy</em> datapoints for each regression: <br><br>
+				<input type="number" id="points" name="points" size ="50" value=0 onwheel="this.blur()" width="200px">
+			<p>
+				<button id="add_points_ben230" onclick="add_points('ben230')">Start Benzoic Acid 230 nm</button>
+				<button onclick="regress('ben230')">Calculate Benzoic Acid 230 nm.</button>
+			</p>
+			<p>
+				<button id="add_points_ben270" onclick="add_points('ben270')">Start Benzoic Acid 270 nm</button>
+				<button onclick="regress('ben270')">Calculate Benzoic Acid 270 nm.</button>
+			</p>
+			<p>
+				<button id="add_points_caf230" onclick="add_points('caf230')">Start Caffeine 230 nm &emsp;</button>
+				<button onclick="regress('caf230')">Calculate Caffeine 230 nm.</button>
+			</p>
+			<p>
+				<button id="add_points_caf270" onclick="add_points('caf270')">Start Caffeine 270 nm &emsp;</button>
+				<button onclick="regress('caf270')">Calculate Caffeine 270 nm.</button>
+			</p>
+			<p>
+				<button onclick="remove_points()" style="width: 300px">Clear and Start next compound/wavelength.</button>
+			</p>
+		</div>
+		<div id = "points_storage">
+			<p id = "x_col"> X <br>
+			</p>
+			<p id = "y_col"> Y <br>
+			</p>
+		</div>
+		<div id = "equations_1">
+		</div>
+		<div id = "system_solver">
+			<p>
+				<button onclick="set_up_system()" style="width: 200px">How to solve for unknown.</button>
+				<button id="unk_b" onclick="enter_unknown()" style="width: 200px" disabled>Enter unknown data.</button>
+				<button id="solve_b" onclick="solve_system()" style="width: 200px" disabled>Solve system of equations</button>
+			</p>
+		</div>
+		<div id = "plot_box_ben230"> </div>
+		<div id = "plot_box_ben270"> </div>
+		<div id = "plot_box_caf230"> </div>
+		<div id = "plot_box_caf270"> </div>
+	</section>
+	<p style = 'width: 800px'>This is the work of Dr. Mauricio Cafiero and may be used widely though attribution is appreciated.</p>
+</body>
+
+<script>
+
+function add_points(name) {
+	no_points = document.getElementById('points').valueAsNumber;
+
+//Above: receives the name of the dataset (ben or caf for benzoic acid or caffeine, 230 or 270 nm) ========================
+//and gets the number of points. Below: creates column labels , loops over points to create the named input boxes for each.
+//adds the named input boxes to the x and y columns. 
+
+	for (let i = 0; i < no_points; i++){
+		var temp_val = (i+1)*2
+		var temp_x = name+"x"+i
+		var temp_y = name+"y"+i
+
+		if (i == 0){
+			document.getElementById("x_col").insertAdjacentHTML("beforeend",name);
+			document.getElementById("y_col").insertAdjacentHTML("beforeend","data");
+		}
+		
+		var new_x = document.createElement("INPUT");
+  		new_x.setAttribute("type", "number");
+  		new_x.setAttribute("placeholder", temp_val);
+		new_x.setAttribute("id", temp_x);
+		new_x.setAttribute("name", temp_x);
+		new_x.setAttribute("width", "50px");
+
+		var new_y = document.createElement("INPUT");
+  		new_y.setAttribute("type", "number");
+  		new_y.setAttribute("placeholder", temp_val*2);
+		new_y.setAttribute("id", temp_y);
+		new_y.setAttribute("name", temp_y);
+		new_y.setAttribute("width", "50px");
+
+  		document.getElementById("x_col").appendChild(new_x);
+		document.getElementById("y_col").appendChild(new_y);
+	}
+}
+
+function remove_points() {
+	
+//Deletes everything from x and y columns, then rewrites column labels. ===================================================
+
+	const remove_from_x = document.getElementById("x_col");
+  	while (remove_from_x.firstChild) {
+    		remove_from_x.removeChild(remove_from_x.lastChild);}
+	
+	const remove_from_y = document.getElementById("y_col");
+  	while (remove_from_y.firstChild) {
+    		remove_from_y.removeChild(remove_from_y.lastChild);}
+
+	document.getElementById('points_storage').innerHTML = 
+	'<p id = "x_col"> X <br></p><p id = "y_col"> Y <br></p>'
+}
+
+function regress(name) {
+	no_points = document.getElementById('points').valueAsNumber;
+	var x_arr = new Array(no_points);
+	var y_arr = new Array(no_points);
+	var y_calc = new Array(no_points);
+
+//Above: receives the name of the dataset (ben or caf for benzoic acid or caffeine, 230 or 270 nm) ========================
+//and gets the number of points; creates arrays for x and y values as well as calculated y values. 
+//Below: checks for no_points to be non-zero and throws an error if it is zero.
+
+	if (isNaN(no_points) || no_points == 0){
+		alert("Please enter the number of datapoints for analysis!");
+		return false;}
+
+//Below: get all of the x and y values for name and put in arrays. throws an error if datapoints are NaN. =================  
+
+	for (let i = 0; i < no_points; i++){
+		var temp_x = name+"x"+i;
+		var temp_y = name+"y"+i;
+		x_arr[i] = document.getElementById(temp_x).valueAsNumber;
+		y_arr[i] = document.getElementById(temp_y).valueAsNumber;
+		if (isNaN(x_arr[i]) || isNaN(y_arr[i])){
+			alert("Please enter the datapoints for analysis!");
+			return false;}
+	}
+
+//Calculate values for regression and R^2. Format output and write to equations element ===================================
+
+	var sum_x=0.0, sum_y=0.0, sum_x2=0.0, sum_xy=0.0, ave_y=0.0, SSR=0.0, SST=0.0
+
+	x_arr.forEach(value => {sum_x += value;});
+	y_arr.forEach(value => {sum_y += value;});
+	ave_y = sum_y/no_points;
+	x_arr.forEach(value => {sum_x2 += value*value;});
+	x_arr.forEach(function(value,index) {sum_xy += value*y_arr[index]});	
+	
+	var m = (no_points*sum_xy - sum_x*sum_y)/(no_points*sum_x2 - Math.pow(sum_x,2));
+	var b = (sum_y - m*sum_x)/no_points;
+	y_calc = x_arr.map(x => m*x+b);
+
+	y_arr.forEach(function(value,index) {SSR += Math.pow((value-y_calc[index]),2)});
+	y_arr.forEach(value => {SST += Math.pow((value-ave_y),2)});
+	let R2 = 1-(SSR/SST);	
+	m = Math.round(1000*m)/1000;
+	b = Math.round(1000*b)/1000;
+	R2 = Math.round(1000*R2)/1000;
+
+	const new_text = 'The best-fit line for '+name+' is: y='
+	+'<input type="number" id="'+name+'_slope" style="width: 40px" value= '+m+'>'
+	+'x + <input type="number" id="'+name+'_int" style="width: 40px" value= '+b+'>'
+	+'</strong> and the R<sup>2</sup> is '+R2+'.<br>';
+	document.getElementById("equations_1").innerHTML += new_text;
+    	
+
+//Create a named canvas for plot of regression. ===========================================================================
+
+	let dim_canvas = 300;
+	let axis_length = dim_canvas/2.0;
+	document.getElementById("plot_box_"+name).innerHTML =
+	name +' Absorbance (y) versus Concentration(x) <br>'
+	+'<canvas id="plot_'+name+'" height= '+dim_canvas+' width='+dim_canvas+' style="border: 10px;"></canvas>';
+	let plot = document.querySelector("#plot_"+name);
+	c = plot.getContext("2d");
+	c.strokeStyle = "#00008B";
+	c.strokeRect(0,0,dim_canvas,dim_canvas);
+
+//Find x and y axis limits by setting each to 1.2 times the maximum x and y value. ========================================
+
+	let x_max = Math.max(...x_arr), y_max = Math.max(...y_arr)
+	let x_min = Math.min(...x_arr), y_min = Math.min(...y_arr)
+
+	if (Math.abs(x_max) > Math.abs(x_min)) { xlim = 1.2*Math.abs(x_max);
+	} else{ xlim = 1.2*Math.abs(x_min);}
+	if (Math.abs(y_max) > Math.abs(y_min)) { ylim = 1.2*Math.abs(y_max);
+	} else{ ylim = 1.2*Math.abs(y_min);}
+
+	xlim = Math.round(xlim*100)/100
+	ylim = Math.round(ylim*100)/100
+
+//Draw the best fit line from the first x/y_calculated datapoint to the last. Coordinates below are scaled according  =====
+//to maximum x and y values. 
+
+	let x1 = axis_length*x_arr[0]/xlim + axis_length
+	let x2 = axis_length*x_arr[no_points-1]/xlim + axis_length
+	let y1 = axis_length-(axis_length*y_calc[0]/ylim)
+	let y2 = axis_length-(axis_length*y_calc[no_points-1]/ylim)
+ 
+	c.beginPath();
+	c.moveTo(x1,y1);
+	c.lineTo(x2,y2);
+	c.stroke();
+
+//Draw the x and y-axes ===================================================================================================
+
+	c.beginPath();
+	c.moveTo(0,axis_length);
+	c.lineTo(dim_canvas, axis_length);
+	c.stroke();
+	c.beginPath();
+	c.moveTo(axis_length,0);
+	c.lineTo(axis_length,dim_canvas);
+	c.stroke();
+
+//Label x and y-axes and draw in original x/y datapoints in red. ==========================================================
+
+	c.font = "14px Arial";
+	c.fillText("x="+xlim,1.7*axis_length,1.1*axis_length);
+	c.fillText("y="+ylim,0.6*axis_length,0.1*axis_length);
+	c.fillStyle = "#DC143C";
+	for (let i = 0; i < no_points; i++){
+		xp = axis_length*x_arr[i]/xlim +axis_length;
+		yp = axis_length-(axis_length*y_arr[i]/ylim);
+		c.fillText("\u2022",xp,yp);}
+}	
+
+function enter_unknown() {
+
+//Create the label and input element to capture the unknow absorbance at 230 nm. Add to system solver element. ============
+
+	var unk_230_label = document.createElement("label");
+  	unk_230_label.innerHTML ="Enter unknown absorbance at 230 nm (A<sub>230</sub><sup>unk</sup>): ";
+	document.getElementById("system_solver").appendChild(unk_230_label);
+	
+
+	var unk_230 = document.createElement("INPUT");
+  	unk_230.setAttribute("type", "number");
+  	unk_230.setAttribute("placeholder", "0.0");
+	unk_230.setAttribute("id", "unk_230");
+	unk_230.setAttribute("name", "unk_230");
+	unk_230.setAttribute("width", "100px");
+	document.getElementById("system_solver").appendChild(unk_230);
+
+	document.getElementById("system_solver").innerHTML += "<br>";
+
+
+//Create the label and input element to capture the unknow absorbance at 270 nm. Add to system solver element. ============
+
+	var unk_270_label = document.createElement("label");
+  	unk_270_label.innerHTML =" Enter unknown absorbance at 270 nm (A<sub>270</sub><sup>unk</sup>): ";
+	document.getElementById("system_solver").appendChild(unk_270_label);
+
+	var unk_270 = document.createElement("INPUT");
+  	unk_270.setAttribute("type", "number");
+  	unk_270.setAttribute("placeholder", "0.0");
+	unk_270.setAttribute("id", "unk_270");
+	unk_270.setAttribute("name", "unk_270");
+	unk_270.setAttribute("width", "100px");
+	document.getElementById("system_solver").appendChild(unk_270);
+
+	document.getElementById("system_solver").innerHTML += "<br>";
+
+//enables the solve system of equations button. ===========================================================================
+
+	document.getElementById("solve_b").disabled=false;
+}
+
+function set_up_system() {
+
+//Creates the text to explain the system of equations and adds it to the system solver element. ===========================
+
+	var eqn_text = "<p style = 'text-align: left; white-space: normal'>The absorbance "
+	+"at each wavelength is given by the sum of the absorbances of benzoic acid and "
+	+"caffeine. The best fit lines define the absorbance of each compound at each "
+	+"wavelength, so we can add the fit equations to get the total absorbance: <br>"
+	+"A<sub>230</sub><sup>unk</sup> = m<sub>230</sub><sup>ben</sup> C<sup>ben</sup> + b<sub>230</sub><sup>ben</sup> " 
+	+"+ m<sub>230</sub><sup>caf</sup> C<sup>caf</sup> + b<sub>230</sub><sup>caf</sup> <br> "
+	+"A<sub>270</sub><sup>unk</sup> = m<sub>270</sub><sup>ben</sup> C<sup>ben</sup> + b<sub>270</sub><sup>ben</sup> " 
+	+"+ m<sub>270</sub><sup>caf</sup> C<sup>caf</sup> + b<sub>270</sub><sup>caf</sup> <br> "
+	+"This is a system of two equations with 2 unknowns (C<sup>ben</sup> and C<sup>caf</sup>). "
+	+"Press the 'enter unknown data' button to enter your data and then press the "
+	+"'solve system of equations' button to solve the equations for the concentrations."
+
+	document.getElementById("system_solver").innerHTML += eqn_text;
+
+//enables the enter unknows button. =======================================================================================
+
+	document.getElementById("unk_b").disabled=false;
+}
+
+function solve_system() {
+
+//Get slope and intercept for each compound/wavelength, then get the absorbances for the unknowns. ========================
+
+	m_ben_230 = document.getElementById('ben230_slope').valueAsNumber;
+	m_ben_270 = document.getElementById('ben270_slope').valueAsNumber;
+	m_caf_230 = document.getElementById('caf230_slope').valueAsNumber;
+	m_caf_270 = document.getElementById('caf270_slope').valueAsNumber;
+
+	int_ben_230 = document.getElementById('ben230_int').valueAsNumber;
+	int_ben_270 = document.getElementById('ben270_int').valueAsNumber;
+	int_caf_230 = document.getElementById('caf230_int').valueAsNumber;
+	int_caf_270 = document.getElementById('caf270_int').valueAsNumber;
+
+	val_unk_230 = document.getElementById('unk_230').valueAsNumber;
+	val_unk_270 = document.getElementById('unk_270').valueAsNumber;
+
+//Below: checks for slopes and unknowns to be non-zero and throws an error if they are zero.
+
+	if (isNaN(m_ben_230) || isNaN(m_ben_270) || isNaN(m_bcaf_230) || isNaN(m_caf_270 || isNaN(val_unk_230) || isNaN(val_unk_270))){
+		alert("Please perform regression and/or enter unknown absorbances for further analysis!");
+		return false;}
+
+//Create matrix with slopes; create vector with unknown absorances and intercepts. ========================================
+
+	const m_mat = math.matrix([[m_ben_230, m_caf_230], [m_ben_270, m_caf_270]]);
+
+	const b_vec = [
+	  [val_unk_230 - int_ben_230 - int_caf_230],
+	  [val_unk_270 - int_ben_270 - int_caf_270]
+	];
+
+//Solve system by matrix inversion; output results to system solver element. ==============================================
+
+	inv_m_mat = math.inv(m_mat);
+	soln_vec = math.multiply(inv_m_mat, b_vec);
+
+	var soln_arr = soln_vec.valueOf();
+	var c_ben = soln_arr[0][0];
+	var c_caf = soln_arr[1][0];
+	c_ben = Math.round(c_ben*1000)/1000;
+	c_caf = Math.round(c_caf*1000)/1000;
+
+	var soln_text = "<br>C<sup>ben</sup> = " + c_ben + "<br>C<sup>caf</sup> = " + c_caf +"<br>";
+	document.getElementById("system_solver").insertAdjacentHTML("beforeend",soln_text);
+}
+
+</script>
+
+</html>
