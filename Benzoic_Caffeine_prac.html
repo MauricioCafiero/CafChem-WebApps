@@ -23,9 +23,11 @@
 		#main_input {
 			grid-area: main_input;
 			vertical-align: middle;
+			outline: 1px solid #D3D3D3;
 			text-align: center;}		
 		#points_storage {
 			display: grid;
+			outline: 1px solid #D3D3D3;
 			grid-area: points_storage;}
 
 		#points_storage {
@@ -51,13 +53,15 @@
 			display: grid;
 			display: block;
 			grid-area: equations_1;
-			text-align: left;}
+			text-align: left;
+			outline: 1px solid #D3D3D3;}
 		#system_solver{
 			display: grid;
 			display: block;
 			grid-area: system_solver;
 			text-align: center;
-			white-space: nowrap;}
+			white-space: nowrap;
+			outline: 1px solid #D3D3D3;}
 
 		#plot_ben230{background-color: White;}
 		#plot_caf230{background-color: White;}
@@ -212,11 +216,21 @@ function regress(name) {
 
 //Above: receives the name of the dataset (ben or caf for benzoic acid or caffeine, 230 or 270 nm) ========================
 //and gets the number of points; creates arrays for x and y values as well as calculated y values. 
-//Below: checks for no_points to be non-zero and throws an error if it is zero.
+//Below: checks for no_points and data points to be non-zero and throws an error if it is zero.
 
 	if (isNaN(no_points) || no_points == 0){
 		alert("Please enter the number of datapoints for analysis!");
 		return false;}
+
+	for (let i = 0; i < no_points; i++){
+		var temp_x = name+"x"+i;
+		var temp_y = name+"y"+i;
+		var temp1 = document.getElementById(temp_x);
+		var temp2 = document.getElementById(temp_y);
+		if (!temp1 || !temp2){
+			alert("Please enter all datapoints for analysis!");
+			return false;}
+	}
 
 //Below: get all of the x and y values for name and put in arrays. throws an error if datapoints are NaN. =================  
 
@@ -385,6 +399,26 @@ function set_up_system() {
 
 function solve_system() {
 
+//Defines a list of elements that need to have been created and/or contain a number in order for this function to work. ===
+//Checks to see if items exist (slopes and intercepts) or if they are NaN (unknowns).
+
+	let elements_to_check = ["ben230","ben270","caf230","caf270","unk_230","unk_270"];
+	
+	for (let ele of elements_to_check){
+		if (ele.slice(0,3) == "caf" || ele.slice(0,3) == "ben"){
+			var ele1 = ele+"_slope", ele2 = ele+"_int";
+			var temp1 = document.getElementById(ele1);
+			var temp2 = document.getElementById(ele2);
+			if (!temp1 || !temp2){
+				alert("Please calculate best-fit lines.");
+				return false;}
+		} else{var temp3 = document.getElementById(ele).valueAsNumber;
+			if (isNaN(temp3)){
+				alert("Please enter unknown data.");
+				return false;}
+			}
+	}
+
 //Get slope and intercept for each compound/wavelength, then get the absorbances for the unknowns. ========================
 
 	m_ben_230 = document.getElementById('ben230_slope').valueAsNumber;
@@ -400,11 +434,18 @@ function solve_system() {
 	val_unk_230 = document.getElementById('unk_230').valueAsNumber;
 	val_unk_270 = document.getElementById('unk_270').valueAsNumber;
 
-//Below: checks for slopes and unknowns to be non-zero and throws an error if they are zero.
+//Below: checks for slopes and unknowns to be NaN and throws an error if they are NaN. ====================================
 
-	if (isNaN(m_ben_230) || isNaN(m_ben_270) || isNaN(m_bcaf_230) || isNaN(m_caf_270 || isNaN(val_unk_230) || isNaN(val_unk_270))){
-		alert("Please perform regression and/or enter unknown absorbances for further analysis!");
-		return false;}
+	for (let ele of elements_to_check){
+		if (ele.slice(0,3) == "caf" || ele.slice(0,3) == "ben"){
+			var ele1 = ele+"_slope", ele2 = ele+"_int";
+			var temp1 = document.getElementById(ele1).valueAsNumber;
+			var temp2 = document.getElementById(ele2).valueAsNumber;
+			if (isNaN(temp1) || isNaN(temp2)){
+				alert("Please calculate best-fit lines.");
+				return false;}
+		} 
+	}
 
 //Create matrix with slopes; create vector with unknown absorances and intercepts. ========================================
 
