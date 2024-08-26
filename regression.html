@@ -20,9 +20,11 @@
 		#main_input {
 			grid-area: main_input;
 			vertical-align: middle;
+			outline: 1px solid #D3D3D3;
 			text-align: center;}		
 		#points_storage {
 			display: grid
+			outline: 1px solid #D3D3D3;
 			grid-area: points_storage;}
 
 		#points_storage {
@@ -46,6 +48,7 @@
 			display: block;
 			grid-area: result_of_calc;
 			text-align: center;
+			outline: 1px solid #D3D3D3;
 			white-space: nowrap;}
 		#plot_holder{
 			display: grid;
@@ -54,6 +57,7 @@
 		#plot_explainer{
 			display: grid;
 			display: block;
+			outline: 1px solid #D3D3D3;
 			grid-area: plot_explainer;
 			padding: 120px;}	
 
@@ -109,7 +113,12 @@
 function add_points() {
 	no_points = document.getElementById('points').valueAsNumber;
 
-//Above: gets the number of points; Below: create an input box for each datapoint. ========================================  
+	if (isNaN(no_points) || no_points == 0){
+		alert("Please enter the number of datapoints for analysis!");
+		return false;}
+
+//Above: gets number of points; checks for no_points to be non-zero and throws an error if it is zero. ====================
+//Below: create an input box for each datapoint.
 
 	for (let i = 0; i < no_points; i++){
 		var temp_val = (i+1)*2
