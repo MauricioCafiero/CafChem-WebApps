@@ -24,6 +24,7 @@
 		#constants {
 			display: grid;
 			grid-area: constants;
+			outline: 1px solid #D3D3D3;
 			text-align: left;}
 
 		#line_buttons {
@@ -61,12 +62,22 @@
 			float: left;}
 
 		hr {border: none;}
+
+		#slider_div { 
+            		display: flex; 
+            		flex-direction: row;}
+		#slider_label {
+			order: 1;}
+		#peak_space_inp {
+			order: 2;}
+		#set_peak_space_b {
+			order: 3;}
 	</style>
 </head>
 
 <body>
 	<h1 style = 'width: 800px' >Visualize rovibrational energy levels and calculate transition frequencies for diatomic molecules.</h1>
-	<div style="font-family: 'cambria math'; width: 800px;"><ul>
+	<div style="font-family: 'cambria math'; width: 800px; outline: 1px solid #D3D3D3;"><ul>
 		<li>This app allows you to calculate energy levels, transition frequencies and a sample spectrum for a linear
 		    diatomic molecule undergoing rovibrational transitions. You must enter masses for the two atoms of the 
 		    molcule, and you may then enter either a spring constant or frequency, and a bond length or vibrational constant.
@@ -78,7 +89,10 @@
 		<li>The total energy for a rovibrational level is the sum of vibrational and rotational energies. This may then be converted to wavenumbers 
 		    by dividing by <em>hc</em>. The "energy" levels and the transition frequencies in the figure below are give in wavenumbers, as is standard.</li>
 		<li>The temperature is needed to calculate the peak intensities on the spectrum; intensities depend on the number of molecules in each 
-	            rotational state, <em>N<sub>J</sub></em>, which obeys a Boltmann distribution: N<sub>J</sub>/N<sub>o</sub> = (2J+1)e<sup>-B&#772;J(J+1)/kT</sup>.
+	            rotational state, <em>N<sub>J</sub></em>, which obeys a Boltmann distribution: N<sub>J</sub>/N<sub>o</sub> = (2J+1)e<sup>-B&#772;J(J+1)/kT</sup>.</li>
+		<li>If peaks on the spectrum are too close together or too far apart, use the slider at the bottom to adjust the spacing, then clear the 
+		    spectrum and redraw the peaks (you do not need to re-enter all of the data).</li>
+
 	</ul></div>
 
 	<section id = "main">
@@ -147,6 +161,11 @@
 		</div>
 		<div id = "spectrum">
 			<canvas id="spectrum_canvas" height=450px width=750px style="background-color: white"> </canvas>
+			<div id="slider_div">
+				<label id="slider_label" for="peak_space_inp">Slide to adjust peak spacing.</label>
+  				<input type="range" id="peak_space_inp" name="peak_space_inp" min="1" max="15" value="3" step="1" />
+				<button id="set_peak_space_b" onclick="set_peak_space()" style="width: 250px"> Set new peak spacing. </button>
+			</div>
 		</div>
 	</section>
 	<p style = 'width: 800px'>This is the work of Dr. Mauricio Cafiero and may be used widely though attribution is appreciated.</p>
@@ -363,21 +382,28 @@ function draw_line(branch,jval) {
 
 	if (branch == 1){
 		line_x1 = spec_center_x + (2.0*jval+2)*B*peak_space;
-		line_text = "R"+jval;}
+		line_text = "R"+jval+": "+delta_v;}
 	else if (branch == -1){
 		line_x1 = spec_center_x - (2.0*jval)*B*peak_space;
-		line_text = "P"+jval;}
+		line_text = "P"+jval+": "+delta_v;}
 	else {
 		line_x1 = spec_center_x;
 		line_y2 = line_y1;
-		line_text = "Q"+jval;}
+		line_text = "Q"+jval+": "+delta_v;}
 	line_x2 = line_x1;
 	
 	sc.beginPath();
 	sc.moveTo(line_x1,line_y1);
 	sc.lineTo(line_x2,line_y2);
 	sc.stroke();
-	sc.fillText(line_text,line_x1+2, line_y2-25)
+
+	sc.save();				//translate and rotate coordinate system to tilt the peak labels
+	sc.translate(line_x1+2, line_y2-25);
+	sc.rotate(-Math.PI/3);
+	
+	sc.fillText(line_text,0,0)
+
+	sc.restore();
 	
 }
 
@@ -485,6 +511,11 @@ function calc_r(){
 	r = Math.round(r*100)/100;
 
 	document.getElementById('bond_length').value = r
+}
+
+function set_peak_space() {
+	var temp_ps = document.getElementById('peak_space_inp').valueAsNumber;
+	peak_space = temp_ps;
 }
 
 </script>

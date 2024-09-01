@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en">
+
+<!-- places to get rid of absolute sizes: canvas size -->
+<!-- ref values for interfacial tension: https://doi.org/10.3390/molecules27154706 -->
+<!-- ref values for interfacial tension: https://pubs.usgs.gov/of/1990/0409/report.pdf -->
+<!-- ref values for interfacial tension: https://www.engineeringtoolbox.com/surface-tension-d_962.html -->
+<!-- ref values for interfacial tension: https://doi.org/10.1016/j.colsurga.2017.07.002 -->
+
+<head>
+	<meta charset="utf-8">
+	<title></title>
+	<style>
+		body {
+			color: White;
+			background-color: DimGrey;
+			min-height: 100vh;
+			width: 100%;
+			min-width: 730px;}
+
+		#main_surf, #intro_text{
+			width: 100%;}
+	
+		#st_labels, #st_values{
+			display: flex;
+			flex-direction: row;
+			width:100%;}
+
+		#choice_container{
+			display: flex;
+			flex-direction: row;
+			width:100%;}
+
+		.st_label_divs{
+			width: 33%;
+			text-align: center;}
+
+		#liq_vap_st, #sol_vap_st, #sol_liq_st{
+			display: flex;
+			flex-direction: column;
+			flex-wrap: wrap;
+			justify-content: flex-start;
+			width:33%;}
+
+		#surface_diagram{
+			width: 100%;
+			text-align: center;}
+
+		#surf_canvas { 
+			background-color: white;}
+
+		#surf_canvas:hover { 
+			transition: 1s ease;
+			transform: scale(1.3);}
+
+		#contact_angle_div {
+			width: 100%; 
+			wrap: nowrap; 
+			text-align: center;}
+
+		button:hover {	
+			transition: 1s ease;
+			transform: scale(1.3);}
+
+		input[type=radio] {
+			text-align: center; 
+			width: 40%;}
+
+		label {
+			text-align: center;
+			width: 40%;
+			border-width:0;}
+
+		input::-webkit-outer-spin-button,
+		input::-webkit-inner-spin-button {
+  		-webkit-appearance: none;
+  		margin: 0;}
+
+		input[type=number] {
+			text-align: center; 
+			-moz-appearance: textfield;}
+		
+		button {text-align: center;
+			width: 150px}
+	</style>
+</head>
+
+<body>
+	<h1 style = 'width: 100%' >Calculate and visualize the contact angle for a liquid on a 
+	surface and determine if the liquid will wet the surface.</h1>
+
+	<section id = "main_surf">
+		<div id="intro_text">
+			<ul>
+				<li>The contact angle for a liquid on a surface is governed by the equation: 
+				&gamma;<sub>SV</sub> = &gamma;<sub>SL</sub> + &gamma;<sub>LV</sub>cos(&theta;), 
+				where each &gamma; is the interfacial tension between solid/vapour, solid/liquid, or
+				liquid/vapour and &theta; is the contact angle. The vapour phase componment is air 
+				in all examples below.</li>
+
+				<li>Choose a liquid/solid combination, and then press the button to set the &gamma; values. 
+				Once the values are populated, press the button to calculate and draw the contact angle.</li>
+
+				<li>The drawing will show the angle, predict wetting behaviour, and show the beading behaviour
+				of the liquid on the surface.</li>
+
+				<li>You may enter your own values for any/all &gamma;'s, but be sure to check the appropriate box.</li>
+			</ul>
+		</div>
+		<hr>
+		<div id="st_labels">
+			<div class="st_label_divs"> Liquid/Air interfacial tension</div>
+			<div class="st_label_divs"> Solid/Air interfacial tension</div>
+			<div class="st_label_divs"> Solid/Liquid interfacial tension</div>
+		</div>
+		<hr>
+		<div id="choice_container">
+
+		<div id = "liq_vap_st">
+			<div>
+			<input type="radio" id="water_air" name="liq_vap_choice" value="0.072" checked>
+			<label for="water_air">water/air &gamma; </label>
+			</div>
+			<div>
+			<input type="radio" id="chloroform_air" name="liq_vap_choice" value="0.0271">
+			<label for="chloroform_air">chloroform/air &gamma; </label>
+			</div>
+			<div>
+			<input type="radio" id="ethanol_air" name="liq_vap_choice" value="0.022">
+			<label for="ethanol_air">ethanol/air &gamma; </label>
+			</div>
+			<div>
+			<input type="radio" id="mercury_air" name="liq_vap_choice" value="0.485">
+			<label for="mercury_air">mercury/air &gamma; </label>
+			</div>
+			<div>
+			<input type="radio" id="diiodomethane_air" name="liq_vap_choice" value="0.0508">
+			<label for="diiodomethane_air">CH<sub>2</sub>I<sub>2</sub>/air &gamma; </label>
+			</div>
+		</div>
+		<div id = "sol_vap_st">
+			<div>
+			<input type="radio" id="PTFE_air" name="sol_vap_choice" value="0.02024" checked>
+			<label for="PTFE_air">PTFE/air &gamma; </label>
+			</div>
+			<div>
+			<input type="radio" id="PMMA_air" name="sol_vap_choice" value="0.04128">
+			<label for="PMMA_air">PMMA/air &gamma; </label>
+			</div>
+			<div>
+			<input type="radio" id="quartz_air" name="sol_vap_choice" value="0.0477">
+			<label for="quartz_air">quartz/air &gamma; </label>
+			</div>
+		</div>
+		<div id = "sol_liq_st">
+			<div>
+			<input type="radio" id="PTFE_water" name="sol_liq_choice" value="0.04642" checked>
+			<label for="PTFE_water">PTFE/water &gamma; </label>
+			</div>
+			<div>
+			<input type="radio" id="PTFE_ethanol" name="sol_liq_choice" value="0.0028">
+			<label for="PTFE_ethanol">PTFE/ethanol &gamma; </label>
+			</div>
+			<div>
+			<input type="radio" id="PTFE_diiodomethane" name="sol_liq_choice" value="0.0068">
+			<label for="PTFE_diiodomethane">PTFE/CH<sub>2</sub>I<sub>2</sub> &gamma; </label>
+			</div>
+			<div>
+			<input type="radio" id="PMMA_water" name="sol_liq_choice" value="0.02163">
+			<label for="PMMA_water">PMMA/water &gamma; </label>
+			</div>
+			<div>
+			<input type="radio" id="PMMA_diiodomethane" name="sol_liq_choice" value="0.00038">
+			<label for="PMMA_diiodomethane">PMMA/CH<sub>2</sub>I<sub>2</sub> &gamma; </label>
+			</div>
+			<div>
+			<input type="radio" id="quartz_water" name="sol_liq_choice" value="0.00807">
+			<label for="quartz_water">quartz/water &gamma; </label>
+			</div>
+			<div>
+			<input type="radio" id="quartz_mercury" name="sol_liq_choice" value="0.4025">
+			<label for="quartz_mercury">quartz/mercury &gamma; </label>
+			</div>
+			<div>
+			<input type="radio" id="quartz_ethanol" name="sol_liq_choice" value="0.0257">
+			<label for="quartz_ethanol">quartz/ethanol &gamma; </label>
+			</div>
+			<div>
+			<input type="radio" id="quartz_chloroform" name="sol_liq_choice" value="0.0209">
+			<label for="quartz_chloroform">quartz/chloroform &gamma; </label>
+			</div>
+		</div>
+
+		</div>
+		<div id="st_values">
+			<div class="st_label_divs"> 
+				<label for="glv">&gamma;<sub>LV</sub> (N/m) = </label>
+				<input type="number" id="glv" placeholder=0 onwheel="this.blur()" style="width: 75px" />
+			</div>
+			<div class="st_label_divs">
+				<label for="gsv">&gamma;<sub>SV</sub> (N/m) = </label>
+				<input type="number" id="gsv" placeholder=0 onwheel="this.blur()" style="width: 75px" />
+			</div>
+			<div class="st_label_divs"> 
+				<label for="gsl">&gamma;<sub>SL</sub> (N/m) = </label>
+				<input type="number" id="gsl" placeholder=0 onwheel="this.blur()" style="width: 75px" />
+			</div>
+		</div>
+		<div style="text-align: center"><br>
+			<button id="set_ift_values" onclick="set_ift()" style="width:225px; margin: 0% 2% 0% 2%;">
+				Set interfacial tension values.</button>
+			<input type="checkbox" id="use_own_values" unchecked>
+			<label for="use_own_values">Check here to enter your own values for any or all &gamma;'s</label>
+		</div>
+		<hr>
+		<div id = "contact_angle_div" style="width: 100%; wrap: nowrap; text-align: center;">
+			<button id="calc_theta_b" onclick="draw_surf()" style="width:33%; margin: 0% 2% 2% 2%;">
+				Calculate and draw contact angle.</button>
+			<label for="contact_angle" style="width:33%;">Contact angle (degrees): </label>
+			<input type="number" id="contact_angle" placeholder=0 onwheel="this.blur()" style="width: 30%;" />
+			
+		</div>
+		<div id = "surface_diagram">
+			<canvas id="surf_canvas" height=600px width=600px> </canvas>
+		</div>	
+
+	</section>
+	<p>This is the work of Dr. Mauricio Cafiero and may be used widely though attribution is appreciated.</p>
+
+</body>
+
+<script>
+
+var liq1, liq2, sol1, sol2; 
+
+function set_ift() {
+
+	var liq_vap_choice  = document.getElementsByName("liq_vap_choice");
+	var sol_vap_choice  = document.getElementsByName("sol_vap_choice");
+	var sol_liq_choice  = document.getElementsByName("sol_liq_choice");
+
+	for (i = 0; i < liq_vap_choice.length; i++) {
+                if (liq_vap_choice[i].checked){
+                    var gamma_liq_vap = liq_vap_choice[i].value;
+		    var liq_vap_name = liq_vap_choice[i].id;}}
+	gamma_liq_vap=Number(gamma_liq_vap);
+
+	for (i = 0; i < sol_vap_choice.length; i++) {
+                if (sol_vap_choice[i].checked){
+                    var gamma_sol_vap = sol_vap_choice[i].value;
+		    var sol_vap_name = sol_vap_choice[i].id;}}
+	gamma_sol_vap=Number(gamma_sol_vap);
+
+	for (i = 0; i < sol_liq_choice.length; i++) {
+                if (sol_liq_choice[i].checked){
+                    var gamma_sol_liq = sol_liq_choice[i].value;
+		    var sol_liq_name = sol_liq_choice[i].id;}}
+	gamma_sol_liq=Number(gamma_sol_liq);
+
+	liq1 = liq_vap_name.split("_")[0]; 
+	liq2 = sol_liq_name.split("_")[1];
+	sol1 = sol_vap_name.split("_")[0];
+	sol2 = sol_liq_name.split("_")[0];
+
+	if (liq1 != liq2 || sol1 != sol2){
+		alert("Liquid and solid mismatch in your selection!");
+		return false;}
+
+	document.getElementById('glv').value = gamma_liq_vap;
+	document.getElementById('gsv').value = gamma_sol_vap;
+	document.getElementById('gsl').value = gamma_sol_liq;
+}
+
+function draw_surf() {
+
+	var own_values = document.getElementById("use_own_values").checked;
+
+//get gammas and calculate angle here! ====================================================================================
+
+	var glv  = document.getElementById("glv").valueAsNumber;
+	var gsv  = document.getElementById("gsv").valueAsNumber;
+	var gsl  = document.getElementById("gsl").valueAsNumber;
+
+	if (isNaN(glv) || isNaN(gsv) || isNaN(gsl)){
+		alert("Please select interfacial tension values!");
+		return false;}
+
+	var theta_rad  = Math.acos((gsv-gsl)/glv);
+	
+	if (isNaN(theta_rad)){
+		alert("Could not take inverse cosine! Values out of domain!");
+		return false;}
+
+	theta_deg = theta_rad*(180/Math.PI);
+	theta_deg = Math.round(theta_deg*1000)/1000;
+	var calc_ang = 180 - theta_deg;
+
+	document.getElementById('contact_angle').value = theta_deg;
+
+	if (theta_deg < 90) {
+		if (sol1 == null || liq1 == null || own_values){
+			var wet_text = "The liquid will wet the solid.";}
+		else{
+			var wet_text = liq1+" will wet "+sol1;}}
+	else if (theta_deg > 90){
+		if (sol1 == null || liq1 == null || own_values){
+			var wet_text = "The liquid will not wet the solid.";}
+		else{
+			var wet_text = liq1+" will not wet "+sol1;}}
+	else {
+		if (sol1 == null || liq1 == null || own_values){
+			var wet_text = "The liquid will slightly wet the solid.";}
+		else{
+			var wet_text = liq1+" will slightly wet "+sol1;}}
+
+// make a plot =============================================================
+// draw lines to indicate solid surface?
+
+	var plot = document.getElementById("surf_canvas");
+	c = plot.getContext("2d");
+
+	var dim_canvas = c.canvas.height;
+	var radius = dim_canvas/4;
+
+	console.log(dim_canvas);
+
+	c.clearRect(0, 0, c.canvas.width, c.canvas.height);
+	c.strokeStyle = "#000000";
+	c.fillStyle = "#0E87CC";
+	c.font = "14px Arial";
+	c.strokeRect(0,0,dim_canvas,dim_canvas);
+
+	var y_axis = dim_canvas/2;
+ 
+	c.beginPath();
+	c.moveTo(0,y_axis);
+	c.lineTo(dim_canvas,y_axis);
+	c.stroke();
+
+	if (theta_deg < 90) {
+		c.strokeStyle ="#DC143C";
+		var ang_i = (Math.PI/180)*(calc_ang-90);
+		var ang_ic = (Math.PI/180)*(90)-ang_i;
+		var ang_1 = -ang_i;
+		var ang_2 = -(ang_i+2*ang_ic);
+
+		var a_len = radius*Math.sin(ang_i);
+		var b_len = radius*Math.sin(ang_ic);
+
+		var circ_origin_x = (dim_canvas/2);
+		var circ_origin_y = (dim_canvas/2) + a_len;
+		
+		var p1_x = (dim_canvas/2)+ b_len - a_len;
+		var p1_y = y_axis - b_len;
+
+		var p2_x = (dim_canvas/2) + b_len + a_len;
+		var p2_y = y_axis + b_len;}
+	else if (theta_deg > 90){
+		c.strokeStyle ="#14DC89";
+		var ang_tc = (Math.PI/180)*(90-calc_ang);
+		var theta = (Math.PI/180)*(calc_ang);
+		var ang_1 = ang_tc;
+		var ang_2 = -(Math.PI + ang_tc);
+	
+		var a_len = radius*Math.sin(ang_tc);
+		var b_len = radius*Math.sin(theta);
+
+		var circ_origin_x = (dim_canvas/2);
+		var circ_origin_y = (dim_canvas/2) - a_len;
+		
+		var p1_x = (dim_canvas/2) + b_len - a_len;
+		var p1_y = y_axis + b_len;
+
+		var p2_x = (dim_canvas/2) + b_len + a_len;
+		var p2_y = y_axis - b_len;}
+	else {
+		var ang_1 = 0;
+		var ang_2 = -Math.PI;
+	
+		var circ_origin_x = (dim_canvas/2);
+		var circ_origin_y = y_axis;
+		
+		var p1_x = (dim_canvas/2) + radius;
+		var p1_y = y_axis + 1.4*radius;
+
+		var p2_x = p1_x;
+		var p2_y = y_axis - 1.4*radius;}
+
+	c.beginPath();
+	c.arc(circ_origin_x,circ_origin_y, radius, ang_1,ang_2,true);
+	c.stroke();
+	c.fill();
+
+	c.beginPath();
+	c.moveTo(p1_x,p1_y);
+	c.lineTo(p2_x,p2_y);
+	c.stroke();
+
+	var ang_x = (dim_canvas/2)+0.5*radius;
+	var ang_y = y_axis - 5
+	c.fillStyle = "#000000";
+	c.fillText(theta_deg+"\u00B0",ang_x,ang_y);
+
+	if (own_values){
+		wet_text_2 = "*user has entered \u03B3 values. Liquid/solid mismatch may exist";}
+
+	var wet_x = (dim_canvas/16);
+	var wet_y = dim_canvas/16;
+	c.fillText(wet_text,wet_x,wet_y);
+	if (own_values){c.fillText(wet_text_2,wet_x,wet_y+15);}	
+}	
+
+
+</script>
+
+</html>
