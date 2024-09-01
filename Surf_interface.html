@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 
-<!-- places to get rid of absolute sizes: canvas size -->
+<!-- places with absolute sizes: canvas; minimum set to accomodate canvas -->
 <!-- ref values for interfacial tension: https://doi.org/10.3390/molecules27154706 -->
 <!-- ref values for interfacial tension: https://pubs.usgs.gov/of/1990/0409/report.pdf -->
 <!-- ref values for interfacial tension: https://www.engineeringtoolbox.com/surface-tension-d_962.html -->
@@ -58,6 +58,9 @@
 			wrap: nowrap; 
 			text-align: center;}
 
+		button {text-align: center;
+			width: 150px;}
+
 		button:hover {	
 			transition: 1s ease;
 			transform: scale(1.3);}
@@ -65,6 +68,10 @@
 		input[type=radio] {
 			text-align: center; 
 			width: 40%;}
+
+		input[type=number] {
+			text-align: center; 
+			-moz-appearance: textfield;}
 
 		label {
 			text-align: center;
@@ -75,13 +82,6 @@
 		input::-webkit-inner-spin-button {
   		-webkit-appearance: none;
   		margin: 0;}
-
-		input[type=number] {
-			text-align: center; 
-			-moz-appearance: textfield;}
-		
-		button {text-align: center;
-			width: 150px}
 	</style>
 </head>
 
@@ -213,23 +213,22 @@
 			<label for="use_own_values">Check here to enter your own values for any or all &gamma;'s</label>
 		</div>
 		<hr>
-		<div id = "contact_angle_div" style="width: 100%; wrap: nowrap; text-align: center;">
+		<div id = "contact_angle_div">
 			<button id="calc_theta_b" onclick="draw_surf()" style="width:33%; margin: 0% 2% 2% 2%;">
 				Calculate and draw contact angle.</button>
 			<label for="contact_angle" style="width:33%;">Contact angle (degrees): </label>
 			<input type="number" id="contact_angle" placeholder=0 onwheel="this.blur()" style="width: 30%;" />
-			
 		</div>
 		<div id = "surface_diagram">
 			<canvas id="surf_canvas" height=600px width=600px> </canvas>
 		</div>	
-
 	</section>
 	<p>This is the work of Dr. Mauricio Cafiero and may be used widely though attribution is appreciated.</p>
-
 </body>
 
 <script>
+
+//these are set in the first function and used in the second, so global ===================================================
 
 var liq1, liq2, sol1, sol2; 
 
@@ -238,6 +237,9 @@ function set_ift() {
 	var liq_vap_choice  = document.getElementsByName("liq_vap_choice");
 	var sol_vap_choice  = document.getElementsByName("sol_vap_choice");
 	var sol_liq_choice  = document.getElementsByName("sol_liq_choice");
+
+//Sets interfacial tension values; above gets radio buttons for each choice ===============================================
+//below: gets the value for the chosen radio buton and gets the name of the choice 
 
 	for (i = 0; i < liq_vap_choice.length; i++) {
                 if (liq_vap_choice[i].checked){
@@ -257,6 +259,9 @@ function set_ift() {
 		    var sol_liq_name = sol_liq_choice[i].id;}}
 	gamma_sol_liq=Number(gamma_sol_liq);
 
+//makes sure that the liqud and solid choices match across the three interfacial tension choices. =========================
+//then sets the values into the input boxes.
+
 	liq1 = liq_vap_name.split("_")[0]; 
 	liq2 = sol_liq_name.split("_")[1];
 	sol1 = sol_vap_name.split("_")[0];
@@ -275,7 +280,8 @@ function draw_surf() {
 
 	var own_values = document.getElementById("use_own_values").checked;
 
-//get gammas and calculate angle here! ====================================================================================
+//above: check to see if used-entered values are being used via the checkbox ==============================================
+//below: get gammas and calculate angle; make sure gamma values are not null. 
 
 	var glv  = document.getElementById("glv").valueAsNumber;
 	var gsv  = document.getElementById("gsv").valueAsNumber;
@@ -297,6 +303,9 @@ function draw_surf() {
 
 	document.getElementById('contact_angle').value = theta_deg;
 
+//above: sets the contact angle value, unless the argument to arccos is out of domain. ====================================
+//below: set the text about wetting behaviour that will appear in the canvas.
+
 	if (theta_deg < 90) {
 		if (sol1 == null || liq1 == null || own_values){
 			var wet_text = "The liquid will wet the solid.";}
@@ -313,24 +322,22 @@ function draw_surf() {
 		else{
 			var wet_text = liq1+" will slightly wet "+sol1;}}
 
-// make a plot =============================================================
-// draw lines to indicate solid surface?
+//drawing: create the liquid on the surface and draw the tangent line =====================================================
+//different cases for wetting and non-wetting (clears any previous drawings first!)
 
 	var plot = document.getElementById("surf_canvas");
 	c = plot.getContext("2d");
 
 	var dim_canvas = c.canvas.height;
 	var radius = dim_canvas/4;
-
-	console.log(dim_canvas);
+	var y_axis = dim_canvas/2;
 
 	c.clearRect(0, 0, c.canvas.width, c.canvas.height);
+
 	c.strokeStyle = "#000000";
 	c.fillStyle = "#0E87CC";
 	c.font = "14px Arial";
 	c.strokeRect(0,0,dim_canvas,dim_canvas);
-
-	var y_axis = dim_canvas/2;
  
 	c.beginPath();
 	c.moveTo(0,y_axis);
@@ -386,31 +393,37 @@ function draw_surf() {
 		var p2_x = p1_x;
 		var p2_y = y_axis - 1.4*radius;}
 
-	c.beginPath();
-	c.arc(circ_origin_x,circ_origin_y, radius, ang_1,ang_2,true);
-	c.stroke();
-	c.fill();
+	var solid_bkgd = new Image();
+	solid_bkgd.src = "dots_cropped.jpg";
+	solid_bkgd.onload = function(){
+		c.drawImage(solid_bkgd,0, dim_canvas/2);
 
-	c.beginPath();
-	c.moveTo(p1_x,p1_y);
-	c.lineTo(p2_x,p2_y);
-	c.stroke();
+		c.beginPath();
+		c.arc(circ_origin_x,circ_origin_y, radius, ang_1,ang_2,true);
+		c.stroke();
+		c.fill();
 
-	var ang_x = (dim_canvas/2)+0.5*radius;
-	var ang_y = y_axis - 5
-	c.fillStyle = "#000000";
-	c.fillText(theta_deg+"\u00B0",ang_x,ang_y);
+		c.beginPath();
+		c.moveTo(p1_x,p1_y);
+		c.lineTo(p2_x,p2_y);
+		c.stroke();
 
-	if (own_values){
-		wet_text_2 = "*user has entered \u03B3 values. Liquid/solid mismatch may exist";}
+		var ang_x = (dim_canvas/2)+3*radius/4;
+		var ang_y = y_axis - 5
+		c.fillStyle = "#000000";
+		c.fillText(theta_deg+"\u00B0",ang_x,ang_y);
+		c.fillText(sol1,5, 3*dim_canvas/4);
+		c.fillText("air",5, dim_canvas/4);
+		c.fillText(liq1,dim_canvas/2, ang_y);
 
-	var wet_x = (dim_canvas/16);
-	var wet_y = dim_canvas/16;
-	c.fillText(wet_text,wet_x,wet_y);
-	if (own_values){c.fillText(wet_text_2,wet_x,wet_y+15);}	
+		if (own_values){
+			wet_text_2 = "*user has entered \u03B3 values. Liquid/solid mismatch may exist";}
+
+		var wet_x = (dim_canvas/16);
+		var wet_y = dim_canvas/16;
+		c.fillText(wet_text,wet_x,wet_y);
+		if (own_values){c.fillText(wet_text_2,wet_x,wet_y+15);}	
+	}
 }	
-
-
 </script>
-
 </html>
