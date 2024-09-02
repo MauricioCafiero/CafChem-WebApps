@@ -24,7 +24,6 @@
 		#constants {
 			display: grid;
 			grid-area: constants;
-			outline: 1px solid #D3D3D3;
 			text-align: left;}
 
 		#line_buttons {
@@ -61,7 +60,7 @@
 		        display: block;
 			float: left;}
 
-		hr {border: none;}
+		hr {color: white;}
 
 		#slider_div { 
             		display: flex; 
@@ -72,18 +71,25 @@
 			order: 2;}
 		#set_peak_space_b {
 			order: 3;}
+
+		#fakelink:hover {
+			transition: 1s ease;
+			transform: scale(1.1)}
+		#sample_values, #hide_sample_point{	
+			display: none;}
+			
 	</style>
 </head>
 
 <body>
 	<h1 style = 'width: 800px' >Visualize rovibrational energy levels and calculate transition frequencies for diatomic molecules.</h1>
-	<div style="font-family: 'cambria math'; width: 800px; outline: 1px solid #D3D3D3;"><ul>
+	<div style="font-family: 'cambria math'; width: 800px;"><ul>
 		<li>This app allows you to calculate energy levels, transition frequencies and a sample spectrum for a linear
 		    diatomic molecule undergoing rovibrational transitions. You must enter masses for the two atoms of the 
 		    molcule, and you may then enter either a spring constant or frequency, and a bond length or vibrational constant.
                     You may then "draw the energy level diagram" including calculated frequencies.</li>
 		<li>Vibrational energies are calculated by E<sub>v</sub> = hc&nu;&#772;(v+&frac12;) where &nu;&#772; is the 
-		    vibrational frequency in wavenumbers (cm<sup>-1</sup>).</li>
+		    vibrational frequency, &nu;&#772 = (k/&mu;)<sup>&frac12;</sup>/(2&pi;c), in wavenumbers (cm<sup>-1</sup>).</li>
 		<li>Rotational energies are calculated by E<sub>J</sub> = hcB&#772;J(J+1) where B&#772; is the rotational constant
 		    given in wavenumbers (cm<sup>-1</sup>), B&#772; = &hbar;<sup>2</sup> / (2hc&mu;r<sup>2</sup>) and r is the bond length.</li>
 		<li>The total energy for a rovibrational level is the sum of vibrational and rotational energies. This may then be converted to wavenumbers 
@@ -92,24 +98,30 @@
 	            rotational state, <em>N<sub>J</sub></em>, which obeys a Boltmann distribution: N<sub>J</sub>/N<sub>o</sub> = (2J+1)e<sup>-B&#772;J(J+1)/kT</sup>.</li>
 		<li>If peaks on the spectrum are too close together or too far apart, use the slider at the bottom to adjust the spacing, then clear the 
 		    spectrum and redraw the peaks (you do not need to re-enter all of the data).</li>
-
-	</ul></div>
-
+		<li id="fakelink">Press here for sample values.</li>
+			<ul><li id="sample_values">For <sup>1</sup>H<sup>35</sup>Cl, use a k of 480 ks<sup>-2</sup> and r of 1.27 &angst;.
+			Press here to populate values. </li>
+			<li id = "hide_sample_point">Press here to hide.</li>
+			</ul
+	</ul>
+	</div>
+	<hr>
 	<section id = "main">
 		<div id = "energy_level_diagram">
 			<canvas id="ELD_canvas" height=550px width=550px style="background-color: white"> </canvas>
-			<button id="draw_diagram_b" onclick="draw_diagram()" style="width:225px;" disabled>
+			<button id="draw_diagram_b" onclick="draw_diagram()" style="width:225px; margin: 2%;" disabled>
 				Draw energy level diagram.</button>
-			<button id="clear_diagram_b" onclick="clear_canvas()" style="width:300px;" disabled>
+			<button id="clear_diagram_b" onclick="clear_canvas()" style="width:300px; margin: 2%;" disabled>
 				Clear energy level diagram and spectrum.</button>
 			<br>
 		</div>
 		<div id="constants">
-			<div>
+			<div style="border: 0; padding: 0; margin: 0;">
 			<label for="temp">T for experiment (K): </label>
 			<input type="number" id="temp" placeholder=0 onwheel="this.blur()" style="width: 30px" />
 			</div>
-			<div>
+			<div style="border: 0; padding: 0; margin: 0; height: 5px"><hr></div>
+			<div style="border: 0; padding: 0; margin: 0;">
 			<label for="mass_1">Mass of atom 1 (amu): </label>
 			<input type="number" id="mass_1" placeholder=0 onwheel="this.blur()" style="width: 30px" />
 		
@@ -120,21 +132,24 @@
 			<input type="number" id="red_mass" placeholder=0 onwheel="this.blur()" style="width: 175px" >
 			<label style="width: 30px"> kg.</label>
 			</div>
-			<div>
+			<div style="border: 0; padding: 0; margin: 0; height: 5px"><hr></div>
+			<div style="border: 0; padding: 0; margin: 0;">
 			<label>Spring Constant (kg s<sup>-2</sup>): </label>
 			<input type="number" id="spring_const" placeholder=0 onwheel="this.blur()" style="width: 30px" >
 			<button id="freq_b" onclick="calc_freq()" disabled>    Calculate frequency.    </button>
 			<br><input type="number" id="freq" placeholder=0 onwheel="this.blur()" style="width: 175px" > 
 			<label style = "padding-right: 0px;">cm<sup>-1</sup>.</label>
 			</div>
-			<div>
+			<div style="border: 0; padding: 0; margin: 0; height: 5px"><hr></div>
+			<div style="border: 0; padding: 0; margin: 0;">
 			<label>Bond length (&angst;): </label>
 			<input type="number" id="bond_length" placeholder=0 onwheel="this.blur()" style="width: 30px" >
 			<br><button id="rot_b" onclick="calc_B()" disabled style="width:200px">Calculate Rotational Constant.</button>
 			<br><input type="number" id="B" placeholder=0 onwheel="this.blur()" style="width: 175px" > 
 			<label style = "padding-right: 0px;">cm<sup>-1</sup>.</label>
 			</div>
-			<div>
+			<div style="border: 0; padding: 0; margin: 0; height: 5px"><hr></div>
+			<div style="border: 0; padding: 0; margin: 0;">
 			Alternately, enter the frequency and/or rotational constant (in the correct units) and convert to 
 			spring constant or bond length. Both require the masses to be input.
 			<button id="k_b" onclick="calc_k()" disabled>Calculate Spring Constant.</button>
@@ -195,6 +210,26 @@ var spec_center_y = axis_y_loc;				//y coordinate for the center of the spectrum
 var peak_space = 3;					//multiplier for peak spacing, to make it readable
 var k_b = (1.380649E-23)/(100*h*c)			// Boltzmann's constant in cm^-1
 
+#event listeners to offer and populate a test case ========================================================================
+
+document.getElementById("fakelink").addEventListener("click",unhide_sample);
+document.getElementById("sample_values").addEventListener("click",populate);
+document.getElementById("hide_sample_point").addEventListener("click",hide_sample);
+
+function unhide_sample() {
+	document.getElementById("sample_values").style.display="block";
+	document.getElementById("hide_sample_point").style.display="block";}
+
+function hide_sample() {
+	document.getElementById("sample_values").style.display="none";
+	document.getElementById("hide_sample_point").style.display="none";}
+
+function populate(){
+	document.getElementById("mass_1").value = 1;
+	document.getElementById("mass_2").value = 35;
+	document.getElementById("temp").value = 298.15;
+	document.getElementById("bond_length").value = 1.27;
+	document.getElementById("spring_const").value = 480;}
 
 function draw_diagram() {
 

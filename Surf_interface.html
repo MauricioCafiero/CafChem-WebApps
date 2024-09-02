@@ -232,6 +232,18 @@
 
 var liq1, liq2, sol1, sol2; 
 
+//add event listeners and alert if user adds own gamma values =============================================================
+
+document.getElementById("glv").addEventListener("blur",caution_own_values);
+document.getElementById("gsv").addEventListener("blur",caution_own_values);
+document.getElementById("gsl").addEventListener("blur",caution_own_values);
+
+function caution_own_values() {
+	var alert_text = 'If you are entering your own values for \u03B3, solid/liquid mismatch may occur;'+
+	' be sure to check the appropriate box.'
+	alert(alert_text);
+}
+
 function set_ift() {
 
 	var liq_vap_choice  = document.getElementsByName("liq_vap_choice");
@@ -346,22 +358,22 @@ function draw_surf() {
 
 	if (theta_deg < 90) {
 		c.strokeStyle ="#DC143C";
-		var ang_i = (Math.PI/180)*(calc_ang-90);
-		var ang_ic = (Math.PI/180)*(90)-ang_i;
-		var ang_1 = -ang_i;
-		var ang_2 = -(ang_i+2*ang_ic);
+		var ang_i = (Math.PI/180)*(calc_ang-90);	//interior angle of triangle made by contact angle 
+		var ang_ic = (Math.PI/180)*(90)-ang_i;		//other interior angle of triangle made by contact angle
+		var ang_1 = -ang_i;				//angle to start arc
+		var ang_2 = -(ang_i+2*ang_ic);			//angle to end arc
 
-		var a_len = radius*Math.sin(ang_i);
-		var b_len = radius*Math.sin(ang_ic);
+		var a_len = radius*Math.sin(ang_i);		//y length of triangle made by contact angle 
+		var b_len = radius*Math.sin(ang_ic);		//x length of triangle made by contact angle 
 
-		var circ_origin_x = (dim_canvas/2);
-		var circ_origin_y = (dim_canvas/2) + a_len;
+		var circ_origin_x = (dim_canvas/2);		//origin for arc circle, x
+		var circ_origin_y = (dim_canvas/2) + a_len;	//origin for arc circle, y
 		
-		var p1_x = (dim_canvas/2)+ b_len - a_len;
-		var p1_y = y_axis - b_len;
+		var p1_x = (dim_canvas/2)+ b_len - a_len;	//point 1 of tangent line, x
+		var p1_y = y_axis - b_len;			//point 1 of tangent line, y
 
-		var p2_x = (dim_canvas/2) + b_len + a_len;
-		var p2_y = y_axis + b_len;}
+		var p2_x = (dim_canvas/2) + b_len + a_len;	//point 2 of tangent line, x
+		var p2_y = y_axis + b_len;}			//point 2 of tangent line, y
 	else if (theta_deg > 90){
 		c.strokeStyle ="#14DC89";
 		var ang_tc = (Math.PI/180)*(90-calc_ang);
