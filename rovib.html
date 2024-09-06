@@ -73,10 +73,15 @@
 			order: 3;}
 
 		#fakelink:hover {
-			transition: 1s ease;
-			transform: scale(1.1)}
-		#sample_values, #hide_sample_point{	
+			color: cyan;}
+		#sample_values {	
 			display: none;}
+		#sample_values:hover {	
+			color:cyan;}
+		#hide_sample_point{	
+			display: none;}
+		#hide_sample_point:hover {	
+			color: cyan;}
 			
 	</style>
 </head>
@@ -210,7 +215,7 @@ var spec_center_y = axis_y_loc;				//y coordinate for the center of the spectrum
 var peak_space = 3;					//multiplier for peak spacing, to make it readable
 var k_b = (1.380649E-23)/(100*h*c)			// Boltzmann's constant in cm^-1
 
-#event listeners to offer and populate a test case ========================================================================
+//event listeners to offer and populate a test case ========================================================================
 
 document.getElementById("fakelink").addEventListener("click",unhide_sample);
 document.getElementById("sample_values").addEventListener("click",populate);

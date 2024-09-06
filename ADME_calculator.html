@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<title>ADME property calculator with molecular drawing capability.</title>
+	
+	<!--load kekule, kekule style sheet abd RDKit. -->
+
+	<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/kekule/dist/themes/default/kekule.css" />
+	<script language="JavaScript" src="https://cdn.jsdelivr.net/npm/kekule/dist/kekule.min.js"></script>
+
+	<script src="https://unpkg.com/@rdkit/rdkit/Code/MinimalLib/dist/RDKit_minimal.js"></script>
+	
+	<style>
+		body {
+			color: White;
+			background-color: DimGrey;
+			min-height: 100vh;
+			width: 100%;}
+
+		#main_grid {
+			display: grid;
+			grid-template-columns: 50% 50%;
+			grid-template-rows: auto auto;
+			grid-template-areas:
+				"box1 box2"
+				"box3 box4";}
+		#box1 {
+			grid-area: box1;
+			vertical-align: middle;
+			text-align: center;}		
+		
+		#intro {
+			width: 100%;}
+
+		#main_flex, #new_mol_holder {
+			display: flex;
+			flex-direction: row;
+			width: 100%;
+			justify-content: center;}
+
+		#composer_holder2, #molfile_holder {
+			width: 100%;}
+
+		#flex_div1 {
+			width: 33%;
+			text-align: center;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;}
+
+		#flex_div2 {
+			width: 33%;
+			text-align: left;
+			vertical-align: middle;}
+
+		#flex_div3 {
+			width: 33%;
+			text-align: left;
+			display:flex;
+			flex-direction: column;
+			text-align: center;}
+
+		#composer_div {
+			width: 100%;
+			text-align: center;
+			background-color: #BEBEBE;
+			height: 300px;}
+
+		#rdkit_canvas{
+			background-color: white;}
+			
+		input::-webkit-outer-spin-button,
+		input::-webkit-inner-spin-button {
+  		-webkit-appearance: none;
+  		margin: 0;}
+
+		input[type=number] {
+			text-align: center; 
+			-moz-appearance: textfield;}
+		
+		button {text-align: center;
+			width: 150px}
+
+		#fakelink:hover {
+			color: cyan;}
+		#sample_values {
+			display: none;}
+		#hide_sample_point{	
+			display: none;}
+		#hide_sample_point:hover {	
+			color: cyan;}	
+	</style>
+</head>
+
+<body>
+	<h1 style="width: 100%;" >ADME properties for a selection of molecules or user-drawn molecules.</h1>
+
+	<div id="intro">
+		<ul>
+			<li>Choose an initial molecule from the selection tool on the left.</li>
+			<li>Press the button to show the structure and some ADME properties
+				of the selected molecule.</li>
+			<li>You may then choose to "edit the molecule;" this opens a drawing window
+				which allows you to make modifications to the molecule.</li>
+			<li>You may then click on the "choose new molecule for properties" button
+				to select the molecule you have drawn instead of a molecule from 
+				the drop down list. </li>
+			<li>You may then press the button again to show the structure and ADME 
+				properties of the new molecule.
+			<li id="fakelink">Press here ADME properties guidelines.
+				<ul id="sample_values">
+					<li>c log P: under 5 by Lipinski's rules; 
+					between -0.4 and 5.6 by the Ghose filter; under 3 by the rule of 3 for 
+					lead-like compounds.</li>
+					<li>Molar refractivity: between 40 and 130 by the Ghose filter. </li>
+					<li>Molecular Weight: under 500 by Lipinski's rules;
+					180 to 480 by the Ghose filter; less than 300 by the rule of 3 for 
+					lead-like compounds.</li>
+					<li>H-bond acceptors: 10 or fewer by Lipinski's rules;
+					not more than 3  by the rule of 3 for lead-like compounds.</li>
+					<li>H-bond donors: 5 or fewer by Lipinski's rules;
+					not more than 3  by the rule of 3 for lead-like compounds.</li>
+					<li>Rotatable bonds: 10 or fewer by the Ghose filter; 
+					no more than 3 by the rule of 3 for lead-like compounds.</li>
+					<li>Polar surface area: no greater than 140 &angst;<sup>2</sup> 
+					by the Ghose filter. </li>
+					
+				</ul></li>
+			<li id = "hide_sample_point">Press here to hide.</li>
+		</ul>
+	</div>
+
+	<section id = "main_flex">
+		<div id = "flex_div1"> 
+			<div><label for="mol_options">Choose a molecule:</label>
+				<select id="mol_options" name="mol_options">
+					<option value="NCCc1cc(O)c(O)cc1">Dopamine</option>
+					<option value="CC(=O)Nc1ccc(O)cc1">Paracetamol</option>
+					<option value="Oc1ccc(cc1O)[C@H]3Oc2cc(O)cc(O)c2C[C@@H]3O">Catechin</option>
+					<option value="O=C1c3c(O/C(=C1/O)c2ccc(O)c(O)c2)cc(O)cc3O">Quercetin</option>
+				</select>
+			</div>
+			<br>
+			<button id="display_molecule_b" onclick="display_molecule()">
+			Display molecule and properties.</button> 
+			<button id="create_composer_b" onclick="create_composer()">
+			Edit molecule.</button> 
+		
+			
+		</div>
+		<div id="flex_div2">
+			<div id="output_div">
+			</div>
+		</div>
+		<div id = "flex_div3">
+			<span id = "mol_display_name"></span>
+			<canvas id="rdkit_canvas"> </canvas>
+		</div>
+	</section>
+	<hr>
+	<div id="new_mol_holder">
+		<label for="new_mol_smiles">SMILES for edited molecule:</label>
+		<input id="new_mol_smiles" type="text" style="width: 30%">
+		<button id="get_new_mol_b" onclick="get_new_mol()" style="width: 30%">
+			Choose new molecule for properties.</button> 
+	</div>
+	<hr>
+	<div id = "composer_div">
+	</div>
+	<div id = "molfile_holder">
+	</div>
+	
+	<p>This is the work of Dr. Mauricio Cafiero and may be used widely though attribution is appreciated.</p>
+</body>
+
+<script>
+
+// set the fault to use the selection tool to choose a molecule. Set up event listeners for ===============================
+// hiding anf unhiding the description text
+
+var use_edited = false;
+
+document.getElementById("mol_options").addEventListener("blur",function(){use_edited=false;});
+document.getElementById("fakelink").addEventListener("click",unhide_sample);
+document.getElementById("hide_sample_point").addEventListener("click",hide_sample);
+
+function unhide_sample() {
+
+//unhides description text ================================================================================================
+
+	document.getElementById("sample_values").style.display="block";
+	document.getElementById("hide_sample_point").style.display="block";}
+
+function hide_sample() {
+
+//hides descrption text ===================================================================================================
+
+	document.getElementById("sample_values").style.display="none";
+	document.getElementById("hide_sample_point").style.display="none";}
+
+function display_molecule() {
+
+// displays the moleule selected or edited with RDKit. Arrays defined to the properties we want with RDKit names and then =
+// with display names. Then check the flag to see if we should use a selection list or use the edit molecule. =============
+
+	print_props = ["CrippenClogP","CrippenMR","exactmw","lipinskiHBA","lipinskiHBD","NumRotatableBonds","tpsa"];
+	name_props = ["log P","Molar Refractivity","Molecular Weight","# H-bond acceptors","# H-bond donors","# rotatable bonds","Polarizable surface area"]
+
+	if (use_edited){
+		var smiles_in = document.getElementById("new_mol_smiles").value;
+		var display_name = smiles_in;}
+	else {
+		var molecule_selector = document.getElementById("mol_options");
+		var mol_index = molecule_selector.selectedIndex;
+		var smiles_in = molecule_selector.options[mol_index].value;
+		var display_name = molecule_selector.options[mol_index].value;}
+
+//Checks to see if RDKit has loaded (throws an error otherwise!) and then draws the molecule to the canvas; then we =======
+// get the descriptor list and choose the ones we want to display and write them to their own div. 
+
+	window.initRDKitModule()
+		.then(function(RDKit) {
+        	console.log("RDKit version: " + RDKit.version());
+        	window.RDKit = RDKit;
+		var smiles = smiles_in;
+		var mol = RDKit.get_mol(smiles);
+		var canvas = document.getElementById("rdkit_canvas");
+		mol.draw_to_canvas(canvas, -1, -1);
+
+		var descriptors = JSON.parse(mol.get_descriptors());
+		descriptorsSorted = Object.keys(descriptors)
+			.sort(function(a,b) {return a.localeCompare(b, undefined, {sensitivity: 'base'});})
+    			.map(function(descriptor) {return [descriptor, descriptors[descriptor]]}) 
+  		var output = document.getElementById("output_div");
+		output.innerHTML = "Properties:<hr>";
+		name_index = 0
+		descriptorsSorted.forEach(function(descriptor) {
+			if (print_props.indexOf(descriptor[0]) !== -1){
+				output.innerHTML += name_props[name_index]+" : "+descriptor[1] +"<br>";
+				name_index++}});
+		output.innerHTML += "<hr>";
+
+		var smiles_element = document.getElementById("mol_display_name");
+		smiles_element.innerHTML = "SMILES: " +display_name;
+
+//this last bit gets RDKit to output a mol-file. we then write that mol-file to its own script element at the end =========
+// body where it is invisible to the user. We need this to read into the composer if we want to edit the molecule later
+
+		var mol_file = " " 
+		mol_file += mol.get_molblock();
+		
+		if(document.getElementById("selected_molecule")){
+			old_script = document.getElementById("selected_molecule");
+			old_script.remove();}
+
+		var output2 = document.getElementById("molfile_holder");
+//		output2.insertAdjacentHTML('afterend','<div class="mt-2 columns" style="white-space: pre-wrap;word-break: break-all;"><div class="column">'+mol_file+'</div></div>');
+		output2.insertAdjacentHTML("afterend","<script id='selected_molecule' type='chemical\/x-mdl-molfile'>"+mol_file+"<\/script>");
+	})
+        .catch(() => {
+                console.log("Could not load RDKit!")
+        });
+}
+
+function create_composer(){
+
+//gets the molecule description from the mol-file in the script element and then checks to see if Kekule is loaded; if it =
+// is, we call the composer.
+
+	var resId = 'url(#selected_molecule)';
+
+	Kekule.IO.loadResourceData(resId, function(mol_ext, success) {
+		if (success) {
+			console.log('Loading from ' + resId + ' Successful');
+			draw_molecule(mol_ext,"composer_div");
+			}
+		else{
+			console.log('Loading from ' + resId + ' Failed');}
+      		});
+
+}
+
+function draw_molecule(mol,element_id) {
+
+//opens the composer in its own div. Also has an event listener to monitor for changes to the structure, get a new SMILES =
+// and write it to the new smiles input box. 
+
+	var holder = document.getElementById(element_id);
+	var new_smiles_holder = document.getElementById("new_mol_smiles");
+	var composer = new Kekule.Editor.Composer(holder);
+
+	composer.setDimension(holder.width, holder.height);
+	composer.appendToElem(document.getElementById('parent')).setChemObj(mol);
+
+	composer.getEditor().on('editObjsUpdated', function(e){
+  		let new_mol = Kekule.ChemStructureUtils.getTotalStructFragment(composer.getChemObj());
+  		if (new_mol){
+    			let smiles = Kekule.IO.saveMimeData(new_mol, 'chemical/x-daylight-smiles');
+			new_smiles_holder.value = smiles;}
+	});
+}
+
+function get_new_mol(){
+
+//ust toggles between using a selected molecule or using an edited molecule. ==============================================
+
+	use_edited = true;	
+}
+
+</script>	
+  
+
+
+</html>
