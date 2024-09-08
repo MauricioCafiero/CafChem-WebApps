@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<title>Basic CSV handing.</title>
+	<script src="https://unpkg.com/@rdkit/rdkit/Code/MinimalLib/dist/RDKit_minimal.js"></script>
+	<style>
+		body {
+			color: White;
+			background-color: DimGrey;
+			min-height: 100vh;
+			width: 100%;}
+
+		#main_grid {
+			display: grid;
+			grid-template-columns: 50% 50%;
+			grid-template-rows: auto auto;
+			grid-template-areas:
+				"box1 box2"
+				"box3 box4";}
+		#box1 {
+			grid-area: box1;
+			vertical-align: middle;
+			text-align: center;}		
+		
+		#intro {
+			width: 100%;}
+
+		#main_flex {
+			display: flex;
+			flex-direction: row;
+			width: 100%;}
+
+		#flex_div1 {
+			width: 50%;
+			text-align: left;
+			display: flex;
+			flex-direction: column;}
+
+		#flex_div2 {
+			width: 50%;
+			text-align: left;
+			display: flex;
+			flex-direction: column;}
+
+		#rdkit_canvas{
+			margin: auto;
+			background-color: white;
+			width: 75%}
+
+		#mol_display_name {
+			margin: auto;}
+			
+		input::-webkit-outer-spin-button,
+		input::-webkit-inner-spin-button {
+  		-webkit-appearance: none;
+  		margin: 0;}
+
+		input[type=number] {
+			text-align: center; 
+			-moz-appearance: textfield;}
+		
+		button {text-align: center;
+			width: 200px;}
+
+		hr {color: white;}
+	</style>
+</head>
+
+<body>
+	<h1 style="width: 100%;" >Read in a CSV file (including a SMILES column) and visualize data.</h1>
+
+	<div id="intro">
+		<ul>
+			<li>Read in a CSV with molecular data and choose a molecule to view based on data values.</li>
+			<li>CSV should have a column labeled SMILES in order to generate molecules.</li>
+			<li>Each row should be delimited by commas.</li>
+			<li>Longer column titles may be truncated.</li>
+			<li>To start, upload your CSV files and press "read data from CSV."</li>
+			<li>Choose a property to be attached to the molecule selector from the drop down menu.
+			If it does not populate the "choose a molecule by property" list, press the 
+			"choose property for molecule selection" button.</li>
+			<li>Choose the property value for the molecule you want to examine, then press the 
+			"display molecule and properties" button.</li>
+		</ul>
+	</div>
+	<hr>
+	<section id = "main_flex">
+		<div id = "flex_div1">
+			<div style="margin: auto;">
+				<label for="choose_file"> Select a CSV file to process.</label>
+				<input type="file" id="choose_file" accept=".csv">
+			</div>
+			<div style="margin: auto;">
+			<button id="read_csv_b" onclick="read_csv()">Read data from CSV</button>
+			</div>
+			<div><hr></div>
+			<div id="options_holder" style="margin: auto;">
+				<label for="prop_options">Choose a property:</label>
+				<select id="prop_options" name="prop_options"></select>
+
+				<label for="mol_options">Choose a molecule by property:</label>
+				<select id="mol_options" name="mol_options"></select>
+			</div>
+			<div><hr></div>
+			<div id="buttons_holder" style="margin: auto;">
+				<button style="width: 45%;" id="display_molecule_b" onclick="set_up_display()">
+				Choose property for molecule selection.</button> 
+
+				<button style="width: 45%;" id="display_molecule_b" onclick="display_molecule()">
+				Display molecule and properties.</button> 
+			</div>
+		</div>
+		<div id = "flex_div2">
+			<span id = "mol_display_name"></span>
+			<canvas id="rdkit_canvas"> </canvas>
+		</div>
+	</section>
+	<div id="table_section"></div>
+	<p>This is the work of Dr. Mauricio Cafiero and may be used widely though attribution is appreciated.</p>
+
+</body>
+
+<script>
+
+// define global variables ================================================================================================
+
+var number_columns, number_points; 
+var column_titles = new Array;
+var smiles_array = new Array;
+var current_prop_name = new String();
+var max_columns = 10
+
+document.getElementById("prop_options").addEventListener("change",set_up_display);
+
+function read_csv(){
+
+//gets file name from input and tries to open it. Throws an error if it cannot be opened ==================================
+
+	var file_holder = document.getElementById("choose_file");
+	var reader = new FileReader();
+
+	var [file] = file_holder.files;
+
+	if (file){
+		console.log("type:",file.type)
+		reader.readAsText(file);
+
+		reader.addEventListener("load", event => {console.log("File read!");
+			var content = reader.result;
+			parse_csv(content);});
+
+		reader.addEventListener("error", event => {console.log("Error reading file!");});
+	} else {
+		alert("please select a file");}
+}
+
+function parse_csv(file_content){
+	
+//accepts a file and parses it as a CSV: splits it into rows, the takes the top row at column titles ======================
+// reads into a 2-D array called dataframe and a separate array for column titles
+
+	var rows = file_content.split(/\r?\n/);
+
+	number_points = rows.length - 1;
+	column_titles = rows[0].split(",");
+
+	if(column_titles.includes("SMILES")){
+
+	while (rows[number_points] == ""){
+		rows.length = number_points - 1;
+		number_points = rows.length - 1;
+		console.log("deleting blank line at end of CSV!");}
+		
+	number_columns = column_titles.length
+
+	var dataframe = new Array(number_points);
+	for (i=0; i < number_points; i++){
+		dataframe[i] = Array.from(rows[i+1].split(","));}
+
+//creates as many columns as needed in the "table section" and displays the data in each column ===========================
+
+	var output_div2 = document.getElementById("table_section");
+	var grid_columns = new String("")
+	var grid_areas = new String("")
+	var col_html = new String("")
+	var col_width = Math.floor(100/number_columns);
+
+	for (i=0; i < number_columns; i++){
+		grid_columns += col_width+"% ";
+		grid_areas += "col"+i;
+		if (number_columns > max_columns){
+			col_html += "<div style='display: none; overflow: hidden; text-wrap: nowrap; outline: solid white; margin: 0% 2% 0% 2%;' id='col"+i+"'><\/div> ";}
+		else{
+		col_html += "<div style='overflow: hidden; text-wrap: nowrap; outline: solid white; margin: 0% 2% 0% 2%;' id='col"+i+"'><\/div> ";}}
+
+	output_div2.style.display = "grid";
+	output_div2.style.gridTemplateColumns = grid_columns;
+	output_div2.style.gridTemplateRows = "auto";
+	output_div2.style.gridTemplateAreas = grid_areas;
+	
+	output_div2.innerHTML = col_html;
+
+	for (i=0; i < number_columns; i++){
+		var col_name = "col"+i;
+		col = document.getElementById(col_name);
+		col.innerHTML = column_titles[i]+"<hr style='margin: 0;'>";
+		for (j = 0; j < number_points; j++){
+			if (column_titles[i] == "SMILES"){
+				smiles_array[j] = dataframe[j][i];}
+			var row_text = "<br>"+dataframe[j][i];
+			col.insertAdjacentHTML("beforeend",row_text);};}
+
+	var alt_text = new String(`<hr><div>Your CSV has more than ${max_columns} columns, so the data will not be displayed. Columns are: `);
+	if (number_columns > max_columns){
+		for (i = 0; i < number_columns; i++){
+			alt_text += ` ${column_titles[i]}`;}
+		 alt_text += `. <div><br><hr>`;
+		output_div2.insertAdjacentHTML("beforeBegin",alt_text);}
+
+//here sets up the property selector with column titles ===================================================================
+
+	var output_div = document.getElementById("prop_options");
+	prop_options.innerHTML = ""
+
+	var prop_html = new String("")
+	
+	for (j = 0; j < number_columns; j++){
+		prop_html += "<option id='prop_opt"+j+"' value='"+column_titles[j]+"'>"+column_titles[j]+"<\/option> ";}
+
+	output_div.insertAdjacentHTML("beforeend",prop_html);
+
+	} else{
+		alert("No SMILES column in CSV!");}
+}
+
+function set_up_display() {
+
+//gets the chosen property, fetches the data for that property, and adds it to the molecule selector ======================
+
+	var prop_selector = document.getElementById("prop_options");
+	var mol_selector = document.getElementById("mol_options");
+	mol_selector.innerHTML = "Choose a molecule by property:"
+
+	var opt_html = new String("");
+	var prop_ind = prop_selector.selectedIndex;
+	var prop_to_use = prop_selector.options[prop_ind].value;
+	current_prop_name = prop_to_use;
+	
+	var col_name = "col"+prop_ind;
+	var col_to_use = document.getElementById(col_name);
+
+	var content = col_to_use.innerHTML;
+
+	var rows = content.split("<br>");
+
+	rows.forEach(function(value,i) {rows[i] = Math.round(value*100)/100;});
+
+	number_points = rows.length;
+	
+	for (j = 1; j < number_points; j++){
+		opt_html += "<option id='opt"+(j-1)+"' value='"+smiles_array[j-1]+"'>"+rows[j]+"<\/option> ";}
+	mol_selector.insertAdjacentHTML("beforeend",opt_html);
+}
+
+function display_molecule() {
+
+// gets the molecule chosen from the selector, and writes the associated property to the screen ===========================
+
+	var molecule_selector = document.getElementById("mol_options");
+	var mol_index = molecule_selector.selectedIndex;
+	var smiles_in = molecule_selector.options[mol_index].value;		//gets smiles
+	
+	var opt_number = "opt"+mol_index;
+	var which_option = document.getElementById(opt_number);
+	var display_name = which_option.innerHTML;				//gets IC50
+
+// draws the molecule in the canvas using RDKit ===========================================================================	
+
+	window.initRDKitModule()
+		.then(function(RDKit) {
+        	console.log("RDKit version: " + RDKit.version());
+        	window.RDKit = RDKit;
+		var smiles = smiles_in;
+		var mol = RDKit.get_mol(smiles);
+		var canvas = document.getElementById("rdkit_canvas");
+		mol.draw_to_canvas(canvas, -1, -1);
+
+		var smiles_element = document.getElementById("mol_display_name");
+		smiles_element.innerHTML = current_prop_name+": " +display_name;});
+
+}
+</script>
+
+</html>
