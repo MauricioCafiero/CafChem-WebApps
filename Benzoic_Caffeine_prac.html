@@ -8,7 +8,29 @@
 	<style>
 		body {
 			color: White;
-			background-color: DimGrey;}
+			background-color: #26292B;
+			min-height: 100vh;
+			width: 100%;}	
+		
+		#main_title {
+			border-radius: 25px;
+			display: flex;
+			flex-direction: row;
+			text-align: left;
+			margin: 0% 5% 2% 5%;
+			background-color: #5F7ADB;
+			width: 90%;}
+		
+		#menu_holder{
+			display: flex;
+			flex-direction: row;}
+			
+		.menu_box {
+			border-radius: 25px;
+			margin: 0% 2% 0% 2%;
+			text-align: center;
+			background-color: #DFFF00;
+			width: 30%;}
 
 		#main {
 			display: grid;
@@ -99,7 +121,15 @@
 </head>
 
 <body>
-	<h1 style = 'width: 800px' >Perform linear regression and solve the system of equations for the Benzoic Acid/Caffeine practical.</h1>
+
+	<div id="main_title"> <img  style="padding: 2% 1% 1% 5%;" src="images/comp_chem_2_small.jpg" alt="Computer"> 
+		<h1 style="padding: 50px;">Perform linear regression and solve the system of equations for the Benzoic Acid/Caffeine practical.</h1>
+	</div>
+	
+	<div id="menu_holder">
+		<a class="menu_box" href="Chem_webapps_frontpage.html" style="color: #00008B;">Back to Chemistry Web Apps</a>
+	</div>
+	<br>
 
 	<section id = "main">
 		<div id = "main_input"><p style = "text-align: left">

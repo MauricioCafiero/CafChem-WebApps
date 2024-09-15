@@ -7,14 +7,43 @@
 	<style>
 		body {
 			color: White;
-			background-color: DimGrey;}
-
+			background-color: #26292B;
+			min-height: 100vh;
+			width: 100%;}
+		
+		#main_title {
+			border-radius: 25px;
+			display: flex;
+			flex-direction: row;
+			text-align: left;
+			margin: 0% 5% 2% 5%;
+			background-color: #5F7ADB;
+			width: 90%;}
+		
+		#main {
+			width: 100%
+			background-color: #5F7ADB;
+			width: 100%;}
+		
+		#menu_holder{
+			display: flex;
+			flex-direction: row;}
+			
+		.menu_box {
+			border-radius: 25px;
+			margin: 0% 2% 0% 2%;
+			text-align: center;
+			background-color: #DFFF00;
+			width: 30%;}
+		
+		a:hover {
+			color: #33ff96;
+			transition: 2s ease;
+			transform: scale(1.15);}
 		a:link {
 			color: #33ff96;}	
 		a:visited {
 			color: #ffdd33;}
-		a:hover {
-			color: #33ff96;}
 
 		li {
  			 margin: 10px 0;}
@@ -23,13 +52,21 @@
 </head>
 
 <body>
-	<h1 style = 'width: 800px' >Web-based applications for various tasks in Chemistry Modules at the University of Reading.</h1><br>
+	<div id="main_title"> <img  style="padding: 2% 1% 1% 5%;" src="images/comp_chem_2_small.jpg" alt="Computer"> 
+		<h1 style="padding: 50px;">Web-based applications for Machine Learning, Physical Chemistry, and Chemistry Practicals.</h1>
+	</div>
+	
+	<div id="menu_holder">
+		<a class="menu_box" href="dr_cafiero.html" style="color: #00008B;">Dr. Cafiero</a>
+		<a class="menu_box" href="members.html" style="color: #00008B;">Group members</a>
+		<a class="menu_box" href="index.html" style="color: #00008B;">Back to Home</a>
+	</div>
+	<br>
 
 	<section id = "main" style = 'width: 800px'>
 		<div><p style = "text-align: left">
-		 	<ol>
-				<li><a href="regression.html">Simple linear regression tool with R<sup>2</sup> and plot.</a></li>
-				<li><a href="Benzoic_Caffeine_prac.html">Perform all analysis for the Part 2 Benzoic Acid/Caffeine practical.</a></li>
+		 	<ol> <h1>Below find links to various web-apps for chemistry written in Javascript.</h1>
+				<li><a href="NeuralNetwork_in_browser.html">Build your own neural network to fit <em>ab initio</em> potential energy surfaces.</a></li>
 				<li><a href="rovib.html">Interactive energy level diagram and spectrum for studying rovibrational energy level
 				transitions for diatomic molecules.</a></li>
 				<li><a href="Surf_interface.html">Calculation and visualization of the contact angle for various liquids on various 
@@ -39,6 +76,8 @@
 				<li><a href="CSV_mol_props.html">Load a CSV files with SMILES and other property data for a set of molecules. You can then choose a molecule 
 				based on the values of the properties and draw a picture of the molecule.</a></li>
 				<li><a href="CSV_plot.html">Load a CSV files with any sets of data. Choose any two series to plot and find the best-fit line.</a></li>
+				<li><a href="Benzoic_Caffeine_prac.html">Perform all analysis for the Part 2 Benzoic Acid/Caffeine practical.</a></li>
+				<li><a href="regression.html">Simple linear regression tool with R<sup>2</sup> and plot.</a></li>
 			</ol>	
 		</div>
 	</section>

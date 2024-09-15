@@ -7,8 +7,34 @@
 	<style>
 		body {
 			color: White;
-			background-color: DimGrey;
-			vertical-align: center;}
+			background-color: #26292B;
+			vertical-align: center;
+			min-height: 100vh;
+			width: 100%;}
+			
+		#main_title {
+			border-radius: 25px;
+			display: flex;
+			flex-direction: row;
+			text-align: left;
+			margin: 0% 5% 2% 5%;
+			background-color: #5F7ADB;
+			width: 90%;}
+		
+		#menu_holder{
+			display: flex;
+			flex-direction: row;}
+			
+		.menu_box {
+			border-radius: 25px;
+			margin: 0% 2% 0% 2%;
+			text-align: center;
+			background-color: #DFFF00;
+			width: 30%;}
+		
+		#top_matter {
+			font-family: 'cambria math'; 
+			width: 95%;}
 
 		#main {
 			display: grid;
@@ -18,9 +44,11 @@
 				"energy_level_diagram constants"
 				"line_buttons line_buttons"
 				"spectrum spectrum";}
+				
 		#energy_level_diagram {
 			grid-area: energy_level_diagram;
-			text-align: center;}		
+			text-align: center;}	
+			
 		#constants {
 			display: grid;
 			grid-area: constants;
@@ -87,8 +115,16 @@
 </head>
 
 <body>
-	<h1 style = 'width: 800px' >Visualize rovibrational energy levels and calculate transition frequencies for diatomic molecules.</h1>
-	<div style="font-family: 'cambria math'; width: 800px;"><ul>
+	<div id="main_title"> <img  style="padding: 2% 1% 1% 5%;" src="images/comp_chem_2_small.jpg" alt="Computer"> 
+		<h1 style="padding: 50px;">Visualize rovibrational energy levels and calculate transition frequencies for diatomic molecules.</h1>
+	</div>
+	
+	<div id="menu_holder">
+		<a class="menu_box" href="Chem_webapps_frontpage.html" style="color: #00008B;">Back to Chemistry Web Apps</a>
+	</div>
+	<br>
+	
+	<div id="top_matter" ><ul>
 		<li>This app allows you to calculate energy levels, transition frequencies and a sample spectrum for a linear
 		    diatomic molecule undergoing rovibrational transitions. You must enter masses for the two atoms of the 
 		    molcule, and you may then enter either a spring constant or frequency, and a bond length or vibrational constant.

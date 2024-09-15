@@ -9,14 +9,32 @@
 			color: White;
 			background-color: DimGrey;}
 
-		#main {
-			display: grid;
-			grid-template-columns: 400px 400px;
-			grid-template-rows: auto auto auto;
-			grid-template-areas:
-				"main_input points_storage"
-				"result_of_calc points_storage"
-				"plot_explainer plot_holder";}
+		body {
+			color: White;
+			background-color: #26292B;
+			min-height: 100vh;
+			width: 100%;}	
+		
+		#main_title {
+			border-radius: 25px;
+			display: flex;
+			flex-direction: row;
+			text-align: left;
+			margin: 0% 5% 2% 5%;
+			background-color: #5F7ADB;
+			width: 90%;}
+		
+		#menu_holder{
+			display: flex;
+			flex-direction: row;}
+			
+		.menu_box {
+			border-radius: 25px;
+			margin: 0% 2% 0% 2%;
+			text-align: center;
+			background-color: #DFFF00;
+			width: 30%;}
+			
 		#main_input {
 			grid-area: main_input;
 			vertical-align: middle;
@@ -75,7 +93,14 @@
 </head>
 
 <body>
-	<h1 style = 'width: 800px'>Perform Linear Regression and find the Coefficient of Determination for a user-defined a set of datapoints.</h1><br>
+	<div id="main_title"> <img  style="padding: 2% 1% 1% 5%;" src="images/comp_chem_2_small.jpg" alt="Computer"> 
+		<h1 style="padding: 50px;">Perform Linear Regression and find the Coefficient of Determination for a user-defined a set of datapoints.</h1>
+	</div>
+	
+	<div id="menu_holder">
+		<a class="menu_box" href="Chem_webapps_frontpage.html" style="color: #00008B;">Back to Chemistry Web Apps</a>
+	</div>
+	<br>
 
 	<section id = "main">
 		<div id = "main_input"> This app allows you to enter a set of <em>xy</em> data points and calculate the slope and

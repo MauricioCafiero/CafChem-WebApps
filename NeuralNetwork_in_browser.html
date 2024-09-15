@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<title>Neural Network for Potential Energy Surface</title>
+	<script language="JavaScript" src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.7.0/dist/tf.min.js"></script>
+	<script language="JavaScript" src="potential_surfaces.js"></script>
+	<style>
+		body {
+			color: White;
+			background-color: #26292B;
+			min-height: 100vh;
+			width: 100%;}	
+		
+		#main_title {
+			border-radius: 25px;
+			display: flex;
+			flex-direction: row;
+			text-align: left;
+			margin: 0% 5% 2% 5%;
+			background-color: #5F7ADB;
+			width: 90%;}
+		
+		#menu_holder{
+			display: flex;
+			flex-direction: row;}
+			
+		.menu_box {
+			border-radius: 25px;
+			margin: 0% 2% 0% 2%;
+			text-align: center;
+			background-color: #DFFF00;
+			width: 30%;}
+			
+		#intro {
+			width: 100%;}
+
+		#main_flex {
+			display: flex;
+			flex-direction: row;
+			width: 100%;}
+	
+		#hider {
+			color: #DFFF00;}
+		
+		#hp_description{
+			display: block;}
+
+		#choice_holder {
+			display: flex;
+			flex-direction: row;
+			width: 100%;}
+		
+		#update_holder {
+			background-color: #DFFF00;
+			color: #000000;
+			text-align: center;}
+
+		#layers_choice, #units_choice, #epochs_choice, #act_choice, #opt_choice {
+			display: flex;
+			flex-direction: column;
+			width: 20%;}
+
+		#top_matter {
+			display: flex;
+			flex-direction: column;
+			width: 100%;}
+
+		#flex_div1 {
+			width: 50%;
+			text-align: left;}
+
+		#flex_div2 {
+			display: flex;
+			flex-direction: column;
+			width: 50%;
+			text-align: center;}
+		
+		#prediction_holder {
+			display: none;}
+			
+		input::-webkit-outer-spin-button,
+		input::-webkit-inner-spin-button {
+  		-webkit-appearance: none;
+  		margin: 0;}
+
+		hr {color: white;}
+
+		input[type=number] {
+			text-align: center; 
+			-moz-appearance: textfield;}
+		
+		button {text-align: center;
+			width: 150px}
+	</style>
+</head>
+
+<body>
+	<div id="main_title"> <img  style="padding: 2% 1% 1% 5%;" src="images/comp_chem_2_small.jpg" alt="Computer"> 
+		<h1 style="padding: 50px;">Use a deep Neural Network (DNN) to fit a molecular potential energy surface.</h1>
+	</div>
+	
+	<div id="menu_holder">
+		<a class="menu_box" href="Chem_webapps_frontpage.html" style="color: #00008B;">Back to Chemistry Web Apps</a>
+	</div>
+	<br>
+		
+	<div id="top_matter">
+
+		<div id="intro"> Fitting potential energy surfaces is one of the most common uses of Machine learning in 
+			computational chemistry. This app will allow you to use a deep neural network to predict the potential energy
+			surface for the N2 molecule. The figure below shows the potential surface calculatd with
+			wB97XD/aug-cc-pVTZ which is used as the "training" data for the DNN. The model will try to <em>learn</em> this 
+			training data and reproduce it as accurately as possible. You can select <em> hyper-parameters</em> for the DNN below.
+			<ul id="hp_description">
+				<li>The number of layers: each layer is a set of "neurons." A layer receives data, <em>transforms</em> that data, 
+					(see below) and then passes it on to the next layer. Each DNN has an <em>input</em> layer which reads in the data,
+					an <em>output</em> layer which produces the final answer, and <em>n hidden layers</em>, which
+					do the "learning." Is there is 1 hidden layer, the model is called a <em>universal approximator</em> but if it has
+					more than 1 hidden layer, it is a <em>deep learning</em> model. The more layers, the more the model can learn.</li>
+				<li>The number of units: each layer <em>h</em> has a certain number of <em>units</em> which are akin to neurons. Each unit takes a piece
+					of input data, <em>x<sub>i</sub></em>,and first applies a linear transformation to it: <em>y<sub>h,i</sub> = M<sub>h</sub>x<sub>i</sub>+b<sub>h</sub></em>.
+					This <em>y<sub>h,i</sub></em> is then passed through an <em>activator</em> function (see below) before being passed to the next layer.</li>
+				<li>The activation: the transformed data <em>y<sub>h,i</sub></em> is passed through a non-linear activation function so that we don't just
+					end up with linear-regression. The non-linear functions can include hyperbolic tangent, a sigmoid function, or a special transformation called a	
+					rectified linear unit. Each activation is appropriate for different situations. </li>
+				<li>The optimizer: the set of <em>M<sub>h</sub></em> and <em>b<sub>h</sub></em> values for each unit of each layer are called the <em>weights and biases</em>
+					for the model, or often just called the <em>weights</em>. In order to learn accurately, the best possible sets of weights are needed.
+					These optimal weights are found through a process by which the accuracy of each successive approximation of the training data is differentiated 
+					with respect to the weights, and the weights that produce the most accurate answer are found.</li>
+				<li>The epochs: the optimization is a method of successive approximations, which we call <em>training</em> so the more you try, the closer you get to 
+					the answer. Some problems need more or less training that others.</li> 
+				<li>The training process is compute-intensive, so it will take a while (usually a minute or so). The epoch update will show your progress.
+			</ul>
+		<div id="hider">Press here to hide/show neural network options</div>
+		<hr>
+		</div>
+		<div id="choice_holder">
+			<div id = "layers_choice">
+				<div>
+				<input type="radio" id="layers_1" name="number_layers_choice" value="1" checked>
+				<label for="layers_1">1 hidden layer </label>
+				</div>
+				<div>
+				<input type="radio" id="layers_2" name="number_layers_choice" value="2">
+				<label for="layers_2">2 hidden layers </label>
+				</div>
+				<div>
+				<input type="radio" id="layers_3" name="number_layers_choice" value="3">
+				<label for="layers_3">3 hidden layers </label>
+				</div>
+				<div>
+				<input type="radio" id="layers_4" name="number_layers_choice" value="4">
+				<label for="layers_4">4 hidden layers </label>
+				</div>
+			</div>
+			<div id = "units_choice">
+				<div>
+				<input type="radio" id="units_20" name="number_units_choice" value="20" checked>
+				<label for="units_20">20 units/neurons </label>
+				</div>
+				<div>
+				<input type="radio" id="units_50" name="number_units_choice" value="50">
+				<label for="units_50">50 units/neurons </label>
+				</div>
+				<div>
+				<input type="radio" id="units_100" name="number_units_choice" value="100">
+				<label for="units_100">100 units/neurons </label>
+				</div>
+				<div>
+				<input type="radio" id="units_150" name="number_units_choice" value="150">
+				<label for="units_150">150 units/neurons </label>
+				</div>
+			</div>
+			<div id = "act_choice">
+				<div>
+				<input type="radio" id="act_relu" name="which_act_choice" value="relu" checked>
+				<label for="act_relu"><em>relu</em> activation </label>
+				</div>
+				<div>
+				<input type="radio" id="act_sigmoid" name="which_act_choice" value="sigmoid">
+				<label for="act_sigmoid"><em>sigmoid</em> activation </label>
+				</div>
+				<div>
+				<input type="radio" id="act_tanh" name="which_act_choice" value="tanh">
+				<label for="act_tanh"><em>tanh</em> activation </label>
+				</div>
+			</div>
+			<div id = "opt_choice">
+				<div>
+				<input type="radio" id="opt_sgd" name="which_opt_choice" value="sgd" checked>
+				<label for="opt_sgd"><em>sgd</em> optimization </label>
+				</div>
+				<div>
+				<input type="radio" id="opt_adam" name="which_opt_choice" value="adam">
+				<label for="opt_adam"><em>adam</em> optimization </label>
+				</div>
+				<div>
+				<input type="radio" id="opt_adagrad" name="which_opt_choice" value="adagrad">
+				<label for="opt_adagrad"><em>adagrad</em> optimization </label>
+				</div>
+			</div>
+			<div id = "epochs_choice">
+				<div>
+				<input type="radio" id="epochs_20" name="number_epochs_choice" value="20" checked>
+				<label for="epochs_20">20 epochs </label>
+				</div>
+				<div>
+				<input type="radio" id="epochs_50" name="number_epochs_choice" value="50">
+				<label for="epochs_50">50 epochs </label>
+				</div>
+				<div>
+				<input type="radio" id="epochs_100" name="number_epochs_choice" value="100">
+				<label for="epochs_100">100 epochs </label>
+				</div>
+				<div>
+				<input type="radio" id="epochs_150" name="number_epochs_choice" value="150">
+				<label for="epochs_150">150 epochs </label>
+				</div>
+			</div>
+		</div>
+	</div>
+	<hr>
+	<section id = "main_flex">
+		<div id = "flex_div1">
+			<button style="width: 40%; margin: 0% 2% 0% 2%;" id="start_training_b" onclick="start_training()">
+				Begin NN training.</button> 
+			<button style="width: 40%; margin: 0% 2% 0% 2%;" id="clear_b" onclick="clear_training()">
+				Clear Model.</button> 
+			<br>
+			<div id="update_holder"></div>
+			<hr>
+			<div id="epochs_holder"></div>
+		</div>
+		<div id = "flex_div2">
+			<div style="text-align: left; margin: 0% 5% 0% 5%;"> This plot shows the high-level wB97XD potential surface in 
+				<font color="#DC143C" style="background-color: white">red</font>
+				and the machine-learning prediction in <font color="#008B00" style="background-color: white">green</font>.
+			</div>
+			<br>
+			<div id="plot_holder1" >
+			</div>
+			<div id="prediction_holder" >
+				<label>Enter bond length for energy prediction (&angst;): </label>
+				<input type="number" id="bond_length" placeholder=0 onwheel="this.blur()" style="width: 30px" >
+				<div id = "answer_holder"></div>
+			</div>
+		</div>
+	</section>
+	<p>This is the work of Dr. Mauricio Cafiero and may be used widely though attribution is appreciated.</p>
+
+</body>
+
+<script>
+
+//Get tensorflow version, and declare global variables. Scale potential (read in ==========================================
+//from potential_surfaces.js) and call initial plot of potential. Event listener for energy prediction.
+
+console.log(tf.version.tfjs);
+
+var number_layers;
+var ntlu;
+var epcs;
+var activator;
+var optimizer_l;
+var model;
+
+var axis_length;
+var xlim;
+var y_lim;
+
+var energy_e = document.getElementById("bond_length");
+energy_e.addEventListener("change",get_energy);
+
+var hpd = document.getElementById("hp_description");
+document.getElementById("hider").addEventListener("click", () => {
+	if (hpd.style.display == "block"){hpd.style.display = "None";}
+	else {hpd.style.display = "Block";}});
+
+scaler = y_raw[y_raw.length-1];
+const y_arr = y_raw.map(y => (y-scaler));
+
+make_plot(x_arr,y_arr,"plot_holder1")
+
+{
+let output = document.getElementById("answer_holder");
+let bottom_curve = Math.min(...y_arr);
+let end_curve = y_arr[y_arr.length-1];
+let binding_energy = 627.5095*(bottom_curve - end_curve);
+binding_energy = Math.round(binding_energy*1000)/1000;
+output.insertAdjacentHTML("beforeEnd",`wB97XD Predicted binding energy: ${binding_energy} kcal/mol. <br>`);
+}
+
+function get_hyper_parameters() {
+
+//function gets hyperparameters ===========================================================================================
+
+	var number_layers_choice  = document.getElementsByName("number_layers_choice");
+	var number_units_choice  = document.getElementsByName("number_units_choice");	
+	var number_epochs_choice  = document.getElementsByName("number_epochs_choice");
+	var which_act_choice  = document.getElementsByName("which_act_choice");
+	var which_opt_choice  = document.getElementsByName("which_opt_choice");
+	
+//Sets hyper-parameter values values; above gets radio buttons for each choice ===============================================
+//below: gets the value for the chosen radio buton and gets the name of the choice 
+
+	for (i = 0; i < number_layers_choice.length; i++) {
+                if (number_layers_choice[i].checked){
+                    number_layers = number_layers_choice[i].value;}}
+	number_layers=parseInt(number_layers);
+
+	for (i = 0; i < number_units_choice.length; i++) {
+                if (number_units_choice[i].checked){
+                    ntlu = number_units_choice[i].value;}}
+	ntlu=parseInt(ntlu);
+
+	for (i = 0; i < number_epochs_choice.length; i++) {
+                if (number_epochs_choice[i].checked){
+                    epcs = number_epochs_choice[i].value;}}
+	epcs=parseInt(epcs);
+
+	for (i = 0; i < which_act_choice.length; i++) {
+                if (which_act_choice[i].checked){
+                    activator = which_act_choice[i].value;}}
+
+	for (i = 0; i < which_opt_choice.length; i++) {
+                if (which_opt_choice[i].checked){
+                    optimizer_l = which_opt_choice[i].value;}}
+}
+
+function start_training() {
+
+//sets up epoch holder and starts training ================================================================================
+
+	var data_display = document.getElementById("epochs_holder");
+	data_display.insertAdjacentHTML("beforeEnd", "Training for Neural Network Started.<br><hr><br>")
+
+	training_nn(x_arr,y_arr);
+}
+
+function clear_training() {
+
+//clears all previous training results and remakes initial plot ===========================================================
+
+	var update_holder = document.getElementById("update_holder");
+	update_holder.innerHTML = " "
+
+	var data_display = document.getElementById("epochs_holder");
+	data_display.innerHTML = " "
+	
+	document.getElementById("answer_holder").innerHTML = "";
+	
+	plot_to_clear = document.getElementById("plot_holder1_plot")
+	c = plot_to_clear.getContext("2d");
+	c.clearRect(0, 0, c.canvas.width, c.canvas.height);
+
+	make_plot(x_arr,y_arr,"plot_holder1")
+	
+	{
+	let output = document.getElementById("answer_holder");
+	let bottom_curve = Math.min(...y_arr);
+	let end_curve = y_arr[y_arr.length-1];
+	let binding_energy = 627.5095*(bottom_curve - end_curve);
+	binding_energy = Math.round(binding_energy*1000)/1000;
+	output.insertAdjacentHTML("beforeEnd",`wB97XD Predicted binding energy: ${binding_energy} kcal/mol. <br>`);
+}
+}
+
+async function training_nn(x_arr,y_arr) {
+
+//gets hyperparameters, creates tensors, builds and compiles model, trains, ===============================================
+//predicts, and then plots
+
+	get_hyper_parameters();
+
+	var data_display = document.getElementById("epochs_holder");
+	var update_holder = document.getElementById("update_holder");
+	
+	const x_tens = tf.tensor(x_arr);
+	const y_tens = tf.tensor(y_arr);
+
+	const printCallback = {onEpochEnd: (epoch,log) =>
+		{update_string = "training epoch: "+epoch+" ==> &emsp;"+JSON.stringify(log)+"<br>";
+		update_holder.innerHTML = `Current Epoch: ${epoch}`;
+		data_display.insertAdjacentHTML("beforeEnd",update_string);}};
+	
+	model = tf.sequential();
+	model.add(tf.layers.dense({inputShape: 1, units: ntlu, activation: activator}));
+	for (let i = 1; i <= number_layers; i++) { 
+		model.add(tf.layers.dense({units: ntlu, activation: activator}));}
+	model.add(tf.layers.dense({units: 1}));
+	model.compile({optimizer: optimizer_l, loss: "meanSquaredError"});
+
+	model.summary();
+
+	await model.fit(x_tens, y_tens, {epochs: epcs, callbacks: printCallback, batchSize: 64});
+
+	const y_pred = model.predict(x_tens);
+
+	var pred_arr = y_pred.arraySync();
+
+	add_plot(x_arr,pred_arr,"plot_holder1")
+
+	var energy_query =document.getElementById("prediction_holder");
+	energy_query.style.display = "block";
+	
+//Predict binding energy with DNN and output ==============================================================================
+	
+	var output = document.getElementById("answer_holder");
+	var bottom_curve = Math.min(...pred_arr);
+	var end_curve = pred_arr[pred_arr.length-1];
+	var binding_energy = 627.5095*(bottom_curve - end_curve);
+	binding_energy = Math.round(binding_energy*1000)/1000;
+	output.insertAdjacentHTML("beforeEnd",`DNN Predicted binding energy: ${binding_energy} kcal/mol. <br>`);
+
+	y_pred.dispose();
+	y_tens.dispose();
+	x_tens.dispose();
+}
+
+function make_plot(x_arr,y_arr,plot_area) {
+
+//Create a named canvas for plot. =========================================================================================
+
+	var no_points = x_arr.length
+	plot_name = plot_area+"_plot"
+	let dim_canvas = 400;
+	axis_length = dim_canvas/2.0;
+	document.getElementById(plot_area).innerHTML =
+	'<canvas id="'+plot_name+'" height= '+dim_canvas+' width='+dim_canvas+' style="border: 1px; background-color: white;"></canvas>';
+	let plot = document.querySelector("#"+plot_name);
+	c = plot.getContext("2d");
+	c.strokeStyle = "#00008B";
+	c.strokeRect(0,0,dim_canvas,dim_canvas);
+
+//Find x and y axis limits by setting each to 1.2 times the maximum x and y value. ========================================
+
+	let x_max = Math.max(...x_arr), y_max = Math.max(...y_arr)
+	let x_min = Math.min(...x_arr), y_min = Math.min(...y_arr)
+
+	if (Math.abs(x_max) > Math.abs(x_min)) { xlim = 1.2*Math.abs(x_max);
+	} else{ xlim = 1.2*Math.abs(x_min);}
+	if (Math.abs(y_max) > Math.abs(y_min)) { ylim = 1.2*Math.abs(y_max);
+	} else{ ylim = 1.2*Math.abs(y_min);}
+
+	xlim = Math.round(xlim*100)/100
+	ylim = Math.round(ylim*100)/100
+
+//Draw the x and y-axes ===================================================================================================
+
+	c.strokeStyle = "#000000";
+	c.beginPath();
+	c.moveTo(0,axis_length);
+	c.lineTo(dim_canvas, axis_length);
+	c.stroke();
+	c.beginPath();
+	c.moveTo(axis_length,0);
+	c.lineTo(axis_length,dim_canvas);
+	c.stroke();
+
+//Label x and y-axes and draw in original x/y datapoints in red. ==========================================================
+
+	c.font = "14px Arial";
+	c.fillText("x="+xlim,1.7*axis_length,1.1*axis_length);
+	c.fillText("y="+ylim,0.6*axis_length,0.1*axis_length);
+	c.fillStyle = "#DC143C";
+	for (let i = 0; i < no_points; i++){
+		xp = axis_length*x_arr[i]/xlim +axis_length;
+		yp = axis_length-(axis_length*y_arr[i]/ylim);
+		c.fillText("\u2022",xp,yp);}
+
+}	
+
+function add_plot(x_arr,y_arr,plot_area) {
+
+//Get canvas for plot of regression.=======================================================================================
+
+	var no_points = x_arr.length
+	plot_name = plot_area+"_plot"
+	let plot = document.querySelector("#"+plot_name);
+	c = plot.getContext("2d");
+	c.fillStyle = "#008B00";
+	
+
+//Label x and y-axes and draw in predicted x/y datapoints in green. =======================================================
+
+	for (let i = 0; i < no_points; i++){
+		xp = axis_length*x_arr[i]/xlim +axis_length;
+		yp = axis_length-(axis_length*y_arr[i]/ylim);
+		c.fillText("\u2022",xp,yp);}
+
+}	
+
+function get_energy() {
+
+//accept a bond length and use the model to predict energy. ===============================================================
+
+	var bond_length = document.getElementById("bond_length").valueAsNumber;
+	
+	const t_tens = tf.tensor([bond_length]);
+	const y_pred = model.predict(t_tens);
+	var pred_arr = y_pred.arraySync();
+	
+	var energy = Number(pred_arr[0])+Number(scaler);
+	energy = Math.round(energy*1000)/1000;
+
+	var output = document.getElementById("answer_holder");
+	
+	
+	output.insertAdjacentHTML("beforeEnd",`DNN Energy at ${bond_length} &angst; is ${energy} ha. <br>`);
+	
+	y_pred.dispose();
+	t_tens.dispose();
+}
+</script>
+
+</html>
