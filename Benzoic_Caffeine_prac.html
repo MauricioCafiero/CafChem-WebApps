@@ -4,13 +4,14 @@
 <head>
 	<meta charset="utf-8">
 	<title>Data Analysis for the Benzene/Caffeine practical.</title>
-	<script language="JavaScript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/3.2.1/math.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/3.2.1/math.js"></script>
+	<script type="module" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>	
 	<style>
 		body {
 			color: White;
 			background-color: #26292B;
 			min-height: 100vh;
-			width: 100%;}	
+			width: 95%;}	
 		
 		#main_title {
 			border-radius: 25px;
@@ -91,21 +92,24 @@
 		#plot_caf270{background-color: White;}
 
 		#plot_box_ben230{
-			display: grid;
+			
 			grid-area: plot_box_ben230;
 			justify-content: center;}
 		#plot_box_caf230{
-			display: grid;
+			
 			grid-area: plot_box_caf230;
 			justify-content: center;}
 		#plot_box_ben270{
-			display: grid;
+			
 			grid-area: plot_box_ben270;
 			justify-content: center;}
 		#plot_box_caf270{
-			display: grid;
+			
 			grid-area: plot_box_caf270;
 			justify-content: center;}
+		
+		.plot_box {
+			display: none;}
 		
 		input::-webkit-outer-spin-button,
 		input::-webkit-inner-spin-button {
@@ -140,7 +144,7 @@
 			of the unknown. </p>
 		
 			Enter the number of of <em>xy</em> datapoints for each regression: <br><br>
-				<input type="number" id="points" name="points" size ="50" value=0 onwheel="this.blur()" width="200px">
+				<input type="number" id="points" name="points" size ="50" placeholder=0 onwheel="this.blur()" width="200px">
 			<p>
 				<button id="add_points_ben230" onclick="add_points('ben230')">Start Benzoic Acid 230 nm</button>
 				<button onclick="regress('ben230')">Calculate Benzoic Acid 230 nm.</button>
@@ -176,15 +180,18 @@
 				<button id="solve_b" onclick="solve_system()" style="width: 200px" disabled>Solve system of equations</button>
 			</p>
 		</div>
-		<div id = "plot_box_ben230"> </div>
-		<div id = "plot_box_ben270"> </div>
-		<div id = "plot_box_caf230"> </div>
-		<div id = "plot_box_caf270"> </div>
+		<div class = "plot_box" id = "plot_box_ben230"> <canvas id="plot_ben230" ></canvas> </div>
+		<div class = "plot_box" id = "plot_box_ben270"> <canvas id="plot_ben270" height= 300px width= 300px ></canvas> </div>
+		<div class = "plot_box" id = "plot_box_caf230"> <canvas id="plot_caf230" height= 300px width= 300px ></canvas> </div>
+		<div class = "plot_box" id = "plot_box_caf270"> <canvas id="plot_caf270" height= 300px width= 300px ></canvas> </div>
 	</section>
 	<p style = 'width: 800px'>This is the work of Dr. Mauricio Cafiero and may be used widely though attribution is appreciated.</p>
 </body>
 
 <script>
+
+var name_hash = {"ben230" : "Benzene 230 nm", "ben270" : "Benzene 270 nm",
+				"caf230" : "Caffeine 230 nm", "caf270" : "Caffeine 270 nm"}
 
 function add_points(name) {
 	no_points = document.getElementById('points').valueAsNumber;
@@ -304,63 +311,75 @@ function regress(name) {
 
 //Create a named canvas for plot of regression. ===========================================================================
 
-	let dim_canvas = 300;
-	let axis_length = dim_canvas/2.0;
-	document.getElementById("plot_box_"+name).innerHTML =
-	name +' Absorbance (y) versus Concentration(x) <br>'
-	+'<canvas id="plot_'+name+'" height= '+dim_canvas+' width='+dim_canvas+' style="border: 10px;"></canvas>';
-	let plot = document.querySelector("#plot_"+name);
+	document.getElementById("plot_box_"+name).style.display = "Grid";
+	let plot = document.getElementById("plot_"+name);
 	c = plot.getContext("2d");
-	c.strokeStyle = "#00008B";
-	c.strokeRect(0,0,dim_canvas,dim_canvas);
-
-//Find x and y axis limits by setting each to 1.2 times the maximum x and y value. ========================================
-
-	let x_max = Math.max(...x_arr), y_max = Math.max(...y_arr)
-	let x_min = Math.min(...x_arr), y_min = Math.min(...y_arr)
+	
+	
+	let x_max = Math.max(...x_arr), y_max = Math.max(...y_arr);
+	let x_min = Math.min(...x_arr), y_min = Math.min(...y_arr);
 
 	if (Math.abs(x_max) > Math.abs(x_min)) { xlim = 1.2*Math.abs(x_max);
 	} else{ xlim = 1.2*Math.abs(x_min);}
 	if (Math.abs(y_max) > Math.abs(y_min)) { ylim = 1.2*Math.abs(y_max);
 	} else{ ylim = 1.2*Math.abs(y_min);}
 
-	xlim = Math.round(xlim*100)/100
-	ylim = Math.round(ylim*100)/100
-
-//Draw the best fit line from the first x/y_calculated datapoint to the last. Coordinates below are scaled according  =====
-//to maximum x and y values. 
-
-	let x1 = axis_length*x_arr[0]/xlim + axis_length
-	let x2 = axis_length*x_arr[no_points-1]/xlim + axis_length
-	let y1 = axis_length-(axis_length*y_calc[0]/ylim)
-	let y2 = axis_length-(axis_length*y_calc[no_points-1]/ylim)
- 
-	c.beginPath();
-	c.moveTo(x1,y1);
-	c.lineTo(x2,y2);
-	c.stroke();
-
-//Draw the x and y-axes ===================================================================================================
-
-	c.beginPath();
-	c.moveTo(0,axis_length);
-	c.lineTo(dim_canvas, axis_length);
-	c.stroke();
-	c.beginPath();
-	c.moveTo(axis_length,0);
-	c.lineTo(axis_length,dim_canvas);
-	c.stroke();
-
-//Label x and y-axes and draw in original x/y datapoints in red. ==========================================================
-
-	c.font = "14px Arial";
-	c.fillText("x="+xlim,1.7*axis_length,1.1*axis_length);
-	c.fillText("y="+ylim,0.6*axis_length,0.1*axis_length);
-	c.fillStyle = "#DC143C";
-	for (let i = 0; i < no_points; i++){
-		xp = axis_length*x_arr[i]/xlim +axis_length;
-		yp = axis_length-(axis_length*y_arr[i]/ylim);
-		c.fillText("\u2022",xp,yp);}
+	xlim = Math.round(xlim*100)/100;
+	ylim = Math.round(ylim*100)/100;
+	
+	let combined_array = new Array();
+	let bestfit_array = new Array();
+	
+	x_arr.forEach(function(xval,index) {
+		let temp_object = {x:xval, y:y_arr[index]};
+		combined_array.push(temp_object);})
+	
+	x_arr.forEach(function(xval,index) {
+		let temp_object = {x:xval, y:y_calc[index]};
+		bestfit_array.push(temp_object);})
+	
+		
+	new Chart(document.getElementById("plot_"+name),{
+		type: "line",
+		data: {
+			datasets: [
+			{	label: name,
+				showLine: false,
+				pointRadius: 4, PointBackgroundColor: "#0000ff",
+				data: combined_array},
+			{	label: "Best-Fit",
+				showLine: true,
+				pointRadius: 4, PointBackgroundColor: "#ff0000",
+				data: bestfit_array},	
+				]},
+		options: {
+			legend: {display: true},
+			plugins: {
+			title: {
+                display: true,
+                text: name_hash[name]},
+            subtitle: {
+                display: true,
+                text: `y = ${m}x + ${b}, R2 = ${R2}`},
+			legend: {align: 'center',
+                     display: true,
+                     position: 'right'}	},
+			scales: {
+				x: {type: "linear",
+					title: {
+					display: true,
+					text: "Concentration (mg/L)"}},
+				y: {type: "linear",
+					title: {
+					display: true,
+					text: "Absorbance"}}
+			}}
+	});
+	
+	
+//	c.fillText(`R2 = ${R2}`, 60,60);
+	
+				
 }	
 
 function enter_unknown() {

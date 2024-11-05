@@ -9,6 +9,7 @@
 
 	<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/kekule/dist/themes/default/kekule.css" />
 	<script language="JavaScript" src="https://cdn.jsdelivr.net/npm/kekule/dist/kekule.min.js"></script>
+	<script language="JavaScript" src="flavanoids_list.js"></script>
 
 	<script src="https://unpkg.com/@rdkit/rdkit/Code/MinimalLib/dist/RDKit_minimal.js"></script>
 	
@@ -17,7 +18,7 @@
 			color: White;
 			background-color: #26292B;
 			min-height: 100vh;
-			width: 100%;}
+			width: 95%;}
 			
 		#main_title {
 			border-radius: 25px;
@@ -42,7 +43,7 @@
 		#intro {
 			width: 100%;}
 
-		#main_flex, #new_mol_holder {
+		#main_flex, #new_mol_holder, #ed_mol_holder, #rand_mol_holder {
 			display: flex;
 			flex-direction: row;
 			width: 100%;
@@ -92,8 +93,8 @@
 		button {text-align: center;
 			width: 150px}
 
-		#fakelink:hover {
-			color: cyan;}
+		#fakelink {
+			color: #DFFF00;}
 		#sample_values {
 			display: none;}
 		#hide_sample_point{	
@@ -115,17 +116,17 @@
 
 	<div id="intro">
 		<ul>
-			<li>Choose an initial molecule from the selection tool on the left.</li>
-			<li>Press the button to show the structure and some ADME properties
-				of the selected molecule.</li>
-			<li>You may then choose to "edit the molecule;" this opens a drawing window
-				which allows you to make modifications to the molecule.</li>
-			<li>You may then click on the "choose new molecule for properties" button
-				to select the molecule you have drawn instead of a molecule from 
-				the drop down list. </li>
-			<li>You may then press the button again to show the structure and ADME 
-				properties of the new molecule.
-			<li id="fakelink">Press here ADME properties guidelines.
+			<li>Choose an initial molecule from the selection tool on the left, and <em>then</em> press the "display molecule and properties" 
+				button to show the structure and some ADME properties of the selected molecule, or</li>
+			<li>Enter your own SMILES string below and press "choose user molecule for properties," or</li>
+			<li>Press the "choose random molecule" to get a random flavanoid molecule.</li>
+			<li>If you would like to make modifications to the chosen molecule, press "edit the molecule" button. This opens a drawing window
+				which allows you to edit the molecule.</li>
+			<li>Press "choose edited molecule for properties" button to select the molecule you have drawn for analysis. </li>
+			<li>Press the "display molecule and properties" button again to show the structure and ADME properties of the edited molecule.</li>
+			
+			<li>Use the copy button to copy any of the molecule smiles strings to the clipboard.</li>
+			<li id="fakelink">Press here to show/hide ADME properties guidelines.
 				<ul id="sample_values">
 					<li>c log P: under 5 by Lipinski's rules; 
 					between -0.4 and 5.6 by the Ghose filter; under 3 by the rule of 3 for 
@@ -144,7 +145,6 @@
 					by the Ghose filter. </li>
 					
 				</ul></li>
-			<li id = "hide_sample_point">Press here to hide.</li>
 		</ul>
 	</div>
 
@@ -177,10 +177,28 @@
 	</section>
 	<hr>
 	<div id="new_mol_holder">
-		<label for="new_mol_smiles">SMILES for edited molecule:</label>
-		<input id="new_mol_smiles" type="text" style="width: 30%">
-		<button id="get_new_mol_b" onclick="get_new_mol()" style="width: 30%">
-			Choose new molecule for properties.</button> 
+		<label for="user_mol_smiles" style="margin: 0% 3%;">SMILES for user molecule:</label>
+		<input id="user_mol_smiles" type="text" style="width: 35%">
+		<button id="get_user_mol_b" onclick="get_user_mol()" style="width: 35%">
+			Choose user molecule for properties.</button>
+		<button id="user_mol_copy_b" onclick="copy_smiles('user_mol_smiles')" style="width: 10%">
+			Copy</button>
+	</div><br>
+	<div id="ed_mol_holder">
+		<label for="new_mol_smiles" style="margin: 0% 3%;">SMILES for edited molecule:</label>
+		<input id="new_mol_smiles" type="text" style="width: 35%">
+		<button id="get_new_mol_b" onclick="get_new_mol()" style="width: 35%">
+			Choose edited molecule for properties.</button> 
+		<button id="ed_mol_copy_b" onclick="copy_smiles('new_mol_smiles')" style="width: 10%">
+			Copy</button>
+	</div><br>
+	<div id="rand_mol_holder">
+		<label for="rand_mol_smiles" style="margin: 0% 3%;">SMILES for random molecule:</label>
+		<input id="rand_mol_smiles" type="text" style="width: 35%">
+		<button id="get_rand_mol_b" onclick="get_rand_mol()" style="width: 35%">
+			Choose random molecule for properties.</button> 
+		<button id="rand_mol_copy_b" onclick="copy_smiles('rand_mol_smiles')" style="width: 10%">
+			Copy</button>
 	</div>
 	<hr>
 	<div id = "composer_div">
@@ -197,17 +215,28 @@
 // hiding anf unhiding the description text
 
 var use_edited = false;
+var use_user = false;
+var use_rand = false;
 
-document.getElementById("mol_options").addEventListener("blur",function(){use_edited=false;});
-document.getElementById("fakelink").addEventListener("click",unhide_sample);
-document.getElementById("hide_sample_point").addEventListener("click",hide_sample);
+document.getElementById("mol_options").addEventListener("blur",function(){
+	use_edited=false;
+	use_user = false;
+	use_rand = false;});
+document.getElementById("fakelink").addEventListener("click",toggle_sample);
 
-function unhide_sample() {
+var new_flav = get_flav();
+
+function toggle_sample() {
 
 //unhides description text ================================================================================================
 
-	document.getElementById("sample_values").style.display="block";
-	document.getElementById("hide_sample_point").style.display="block";}
+	var sample_values = document.getElementById("sample_values");
+	
+	if (sample_values.style.display == "block") {
+		sample_values.style.display = "none";}
+	else {
+		sample_values.style.display = "block";}
+}
 
 function hide_sample() {
 
@@ -226,6 +255,12 @@ function display_molecule() {
 
 	if (use_edited){
 		var smiles_in = document.getElementById("new_mol_smiles").value;
+		var display_name = smiles_in;}
+	else if (use_user) {
+		var smiles_in = document.getElementById("user_mol_smiles").value;
+		var display_name = smiles_in;}
+	else if (use_rand) {
+		var smiles_in = document.getElementById("rand_mol_smiles").value;
 		var display_name = smiles_in;}
 	else {
 		var molecule_selector = document.getElementById("mol_options");
@@ -323,6 +358,57 @@ function get_new_mol(){
 //ust toggles between using a selected molecule or using an edited molecule. ==============================================
 
 	use_edited = true;	
+	use_user = false;
+	use_rand = false;
+	
+	display_molecule()
+}
+
+function get_user_mol(){
+
+//ust toggles between using a selected molecule or using an edited molecule. ==============================================
+
+	use_user = true;	
+	use_edited = false;
+	use_rand = false;
+	console.log("Using user mol")
+	
+	display_molecule()
+}
+
+function* get_flav() {
+	original_length = flavs.length;
+	
+	for (let i = 0; i < original_length; i++){
+		var rn = Math.random()*original_length;
+		rn = Math.floor(rn);
+		next_flav = flavs[rn];
+		yield next_flav;
+	}
+}
+
+function get_rand_mol() {
+	rand_mol_input = document.getElementById("rand_mol_smiles");
+	
+	var rand_smiles = new_flav.next().value;
+	rand_mol_input.value = rand_smiles;
+	
+	use_rand = true;	
+	use_user = false;
+	use_edited = false;
+	
+	display_molecule()
+}
+
+function copy_smiles(which_smiles) {
+  var copyText = document.getElementById(which_smiles);
+
+  copyText.select();
+  copyText.setSelectionRange(0, 99999);
+
+  navigator.clipboard.writeText(copyText.value);
+
+//  alert("Copied the text: " + copyText.value);
 }
 
 </script>	

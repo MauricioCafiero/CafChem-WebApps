@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<title>Molecular Substitutions.</title>
+	<script src="https://unpkg.com/@rdkit/rdkit/Code/MinimalLib/dist/RDKit_minimal.js"></script>
+	<style>
+		body {
+			color: White;
+			background-color: #26292B;
+			min-height: 100vh;
+			width: 95%;}
+
+		#main_title {
+			border-radius: 25px;
+			display: flex;
+			flex-direction: row;
+			text-align: left;
+			margin: 0% 5% 2% 5%;
+			background-color: #5F7ADB;
+			width: 90%;}
+		
+		#menu_holder{
+			display: flex;
+			flex-direction: row;}
+			
+		.menu_box {
+			border-radius: 25px;
+			margin: 0% 2% 0% 2%;
+			text-align: center;
+			background-color: #DFFF00;
+			width: 30%;}
+		
+		#intro {
+			width: 100%;}
+
+		.main_flex {
+			display: flex;
+			flex-direction: row;
+			width: 100%;}
+
+		.flex_div {
+			width: 50%;
+			text-align: left;
+			display: flex;
+			flex-direction: column;
+			align-content: center;}
+		
+		#choice_holder {
+			display: flex;
+			flex-direction: row;
+			width: 100%;
+			position: relative;}
+		
+		.each_choice {
+			display: flex;
+			flex-direction: column;
+			width: 33%;
+			align-content: center;}
+		
+		.buttons_holder {
+			display: flex;
+			flex-direction: column;
+			align-content: center;}
+
+		.rdkit_canvas{
+			margin: auto;
+			background-color: white;
+			width: 75%}
+		
+		#csv_section, #no_csv_section {
+			width: 100%;}
+			
+		#waiting {
+			position: absolute;
+			left: 35%;
+			top: 40%;
+			font-size: 1rem;
+			border-style: solid;
+			border-color: #DFFF00; 
+			background-color: #5F7ADB;
+			width: 30%;
+			z-index=1;
+			border-radius: 25px;
+			height: 30%;
+			text-align: center;
+			align-content: center;
+			display: none;}
+		
+		#table_section {
+			display: none;
+			flex-direction: rows;
+			flex-wrap: wrap;
+			justify-content: space-around;}
+		
+		.csv_boxes {
+			width: 40%;}
+		
+		#export_csv {
+			color: #DFFF00;}
+		
+		.button_box {
+			width: 100%;
+			display: flex;
+			flex-direction: rows;
+			justify-content: space-around;}}
+
+		#mol_display_name {
+			margin: auto;}
+			
+		input::-webkit-outer-spin-button,
+		input::-webkit-inner-spin-button {
+  		-webkit-appearance: none;
+  		margin: 0;}
+
+		input[type=number] {
+			text-align: center; 
+			-moz-appearance: textfield;}
+		
+		button {text-align: center;}
+
+		hr {color: white;}
+	</style>
+</head>
+
+<body>
+	<div id="main_title"> <img  style="padding: 2% 1% 1% 5%;" src="images/comp_chem_2_small.jpg" alt="Computer"> 
+		<h1 style="padding: 50px;">Create novel molecules by substitution on a user-provided list of molecules.</h1>
+</h1>
+	</div>
+	
+	<div id="menu_holder">
+		<a class="menu_box" href="Chem_webapps_frontpage.html" style="color: #00008B;">Back to Chemistry Web Apps</a>
+	</div>
+	<br>
+
+	<div id="intro">
+		<ul>
+			<li>Read in a CSV with a column of SMILES strings and display the molecules.</li>
+			<li>Perform a range of substitutions on <em>aromatic 6-membered rings</em> in those molecules.</li>
+			<li>Choose to substitute on unsubstituted carbons, or replace OH and OCH3 groups.</li>
+			<li>A list of substituted smiles will be printed below the images; these may be copied and
+			pasted into a text file with the extension .csv to create a new csv.</li>
+		</ul>
+	</div>
+	<hr>
+	<div id="choice_holder">
+			<div class = "each_choice">
+				<div>
+				Choose a group to replace <hr></div>
+				<div>
+				<input type="radio" id="hydroxyl" name="general_sub_point" value="c(O)c" checked>
+				<label for="hydroxyl">Replacing a hydroxyl group. </label>
+				</div>
+				<div>
+				<input type="radio" id="methoxy" name="general_sub_point" value="c(OC)c">
+				<label for="methoxy">Replacing a methoxy group. </label>
+				</div>
+			</div>
+			<div class = "each_choice">
+				<div>
+				Choose location for substitution <hr></div>
+				<div>
+				<input type="radio" id="first_cc" name="specific_sub_point" value="0" checked>
+				<label for="first_cc">First consecutive unsubstituted carbons encountered on ring, single </label>
+				</div>
+				<div>
+				<input type="radio" id="first_ccg" name="specific_sub_point" value="8">
+				<label for="first_cc">Any consecutive unsubstituted carbons encountered on ring, multiple </label>
+				</div>
+				<div>
+				<input type="radio" id="unsub_c2" name="specific_sub_point" value="1">
+				<label for="unsub_c2">Unsubstituted carbon 2 on ring. </label>
+				</div>
+				<div>
+				<input type="radio" id="unsub_c4" name="specific_sub_point" value="2">
+				<label for="unsub_c4">Unsubstituted carbon 4 on ring.</label>
+				</div>
+				<div>
+				<input type="radio" id="sub_c2" name="specific_sub_point" value="3">
+				<label for="sub_c2">Substituted carbon 2 on ring. </label>
+				</div>
+				<div>
+				<input type="radio" id="sub_c3" name="specific_sub_point" value="4">
+				<label for="sub_c3">Substituted carbon 3 on ring. </label>
+				</div>
+				<div>
+				<input type="radio" id="sub_c4" name="specific_sub_point" value="5">
+				<label for="sub_c4">Substituted carbon 4 on ring. </label>
+				</div>
+				<div>
+				<input type="radio" id="sub_c5" name="specific_sub_point" value="6">
+				<label for="sub_c5">Substituted carbon 5 on ring. </label>
+				</div>
+				<div>
+				<input type="radio" id="sub_c6" name="specific_sub_point" value="7">
+				<label for="sub_c6">Substituted carbon 6 on ring. </label>
+				</div>
+			</div>
+			<div class = "each_choice">
+				<div>
+				Choose new group to add <hr></div>
+				<div>
+				<input type="radio" id="Fluoro" name="new_frag" value="0" checked>
+				<label for="Fluoro">Fluoro </label>
+				</div>
+				<div>
+				<input type="radio" id="Cyano" name="new_frag" value="1">
+				<label for="Cyano">Cyano </label>
+				</div>
+				<div>
+				<input type="radio" id="Iodo" name="new_frag" value="2">
+				<label for="Iodo">Iodo </label>
+				</div>
+				<div>
+				<input type="radio" id="Nitro" name="new_frag" value="3">
+				<label for="Nitro">Nitro </label>
+				</div>
+				<div>
+				<input type="radio" id="Methoxy" name="new_frag" value="4">
+				<label for="Methoxy">Methoxy </label>
+				</div>
+				<div>
+				<input type="radio" id="Chloro" name="new_frag" value="5">
+				<label for="Chloro">Chloro </label>
+				</div>
+				<div>
+				<input type="radio" id="Ammonium" name="new_frag" value="6">
+				<label for="Ammonium">Ammonium/Charged amino </label>
+				</div>
+				<div>
+				<input type="radio" id="Methyl" name="new_frag" value="7">
+				<label for="Methyl">Methyl </label>
+				</div>
+			</div>
+		<div id="waiting">Performing substitutions and fetching IUPAC names from Pubchem. Please wait.</div>
+	</div>
+		<hr>
+	<section class = "main_flex">
+		<div class = "flex_div">
+			<div style="margin: auto;">
+				<label for="choose_file"> Select a CSV file to process.</label>
+				<input type="file" id="choose_file" accept=".csv">
+			</div>
+			<br>
+			<div class="buttons_holder" style="margin: auto;">
+				<button id="display_molecule_b" onclick="show_next_mol()" disabled>Display next molecule.</button> 
+				<br>
+				<div id="new_mols_div" ></div>
+			</div>
+		</div>
+		<div class = "flex_div">
+			<div class="buttons_holder" style="margin: auto;">
+				<button id="find_replace_b" onclick="find_replace()" disabled>Perform substitution.</button> 
+				<br>
+				<button id="show_next_sub_b" onclick="show_next_sub()" disabled>Show next substituted molecule.</button> 
+				<br>
+				<div id = "subs_div"> </div>
+				<div id = "subs_buttons"></div>
+			</div>
+		</div>
+	</section>
+	<hr>
+	<section id="canvas_div" class = "main_flex">
+		<div class = "flex_div">
+			<span id = "old_mol_display_name"></span>
+			<canvas id="old_rdkit_canvas" class = "rdkit_canvas"> </canvas>
+		</div>
+		<div class = "flex_div">
+			<span id = "new_mol_display_name"></span>
+			<canvas id="new_rdkit_canvas" class = "rdkit_canvas"> </canvas>
+		</div>
+	</section>
+	<hr>
+	<div id="table_section"> Smiles list for substituted molecules, and for original list with substituted molecules when applicable. 
+		<a id='export_csv' download='substituted_molecules.csv'>Export substituted molecules.</a>
+		<div class="button_box">
+			<button id='copy_b' onclick='copy_smiles_list()'>Copy new list to clipboard.</button>
+			<button id='copy_no_b' onclick='copy_no_smiles_list()'>Copy total list to clipboard.</button>
+		</div>
+		<div class="csv_boxes">
+			
+			<textarea id="csv_section" readonly rows = "0"></textarea>
+		</div>
+		<div class="csv_boxes">
+			
+			<textarea id="no_csv_section" readonly rows = "0"></textarea>
+		</div>
+	</div>
+	<p>This is the work of Dr. Mauricio Cafiero and may be used widely though attribution is appreciated.</p>
+
+</body>
+
+<script>
+
+// define global variables ================================================================================================
+
+var number_columns, number_points; 
+var column_titles = new Array;
+var smiles_array = new Array;
+var sub_smiles = new Array;
+var new_and_old = new Array;
+var sub_name_array = new Array();
+var current_prop_name = new String();
+var sub_point_one
+
+//Initiate the generator for the original smiles and set up the event listener for loading the csv
+
+new_smiles = get_smiles(); 
+
+document.getElementById("choose_file").addEventListener('change', () => {
+	read_csv();});
+
+document.getElementById("export_csv").addEventListener('click', () => {
+	download_csv();});
+
+function get_sub_values() {
+
+//retreives the values for substitution points from the radio buttons. Assigns a general sub_point based on the specific one
+
+	var general_sub_point  = document.getElementsByName("general_sub_point");
+	var specific_sub_point  = document.getElementsByName("specific_sub_point");
+	var new_frag  = document.getElementsByName("new_frag");
+
+	for (i = 0; i < general_sub_point.length; i++) {
+                if (general_sub_point[i].checked){
+                    var which_group = general_sub_point[i].value;}}
+	
+	for (i = 0; i < specific_sub_point.length; i++) {
+                if (specific_sub_point[i].checked){
+                    sub_point_two = parseInt(specific_sub_point[i].value);}}
+	
+	if (sub_point_two == 0 || sub_point_two == 1 || sub_point_two == 2 || sub_point_two == 8) {
+		sub_point_one = "cc";}
+	else {
+		sub_point_one = which_group;}
+	
+	for (i = 0; i < new_frag.length; i++) {
+                if (new_frag[i].checked){
+                    sub_point_three = parseInt(new_frag[i].value);}}
+
+}
+
+function read_csv() {
+
+//gets file name from input and tries to open it. Throws an error if it cannot be opened ==================================
+
+	var file_holder = document.getElementById("choose_file");
+	var reader = new FileReader();
+	new_smiles = get_smiles(); 
+
+	var [file] = file_holder.files;
+
+	if (file){
+		console.log("type:",file.type)
+		reader.readAsText(file);
+
+		reader.addEventListener("load", event => {console.log("File read!");
+			var content = reader.result;
+			parse_csv(content);});
+
+		reader.addEventListener("error", event => {alert("Error reading file!");});
+	} else {
+		alert("please select a file");}
+}
+
+function parse_csv(file_content){
+	
+//accepts a file and parses it as a CSV: splits it into rows, the takes the top row at column titles ======================
+// reads into a 2-D array called dataframe
+
+	const output_holder = document.getElementById("new_mols_div");
+	output_holder.innerHTML = "";
+		
+	var rows = file_content.split(/\r?\n/);
+	smiles_array.length = 0;
+
+	number_points = rows.length - 1;
+	
+//allow for different separators and different spellings of smiles. if using ";", then assumes a ChEMBL file and
+//removes extra quote marks
+
+	if (rows[0].includes(";")) {
+		split_char = ";"
+		column_titles = rows[0].split(split_char);
+		column_titles = column_titles.map(x => x.replace(/"/g,""));}
+	else {
+		split_char = ","
+		column_titles = rows[0].split(split_char);}
+	console.log(number_points);
+
+	if(column_titles.includes("SMILES") || column_titles.includes("smiles") || column_titles.includes("Smiles")){
+		while (rows[number_points] == ""){
+			rows.length = number_points - 1;
+			number_points = rows.length - 1;
+			console.log("deleting blank line at end of CSV!");}
+			
+		number_columns = column_titles.length
+
+		var dataframe = new Array(number_points);
+		for (i=0; i < number_points; i++){
+			if (split_char == ";") {
+				let temp_vec = rows[i+1].split(split_char)
+				temp_vec = temp_vec.map(x => x.replace(/"/g,""));
+				dataframe[i] = Array.from(temp_vec);}
+			else {
+				dataframe[i] = Array.from(rows[i+1].split(split_char));}}
+		
+		smiles_index = column_titles.findIndex(x => x == "Smiles" || x == "SMILES" || x == "smiles");
+		for (j = 0; j < number_points; j++){
+					smiles_array[j] = dataframe[j][smiles_index];}
+		
+//Once smiles are loaded, enable buttons to display next molecule and perform substitutions
+
+		document.getElementById("display_molecule_b").disabled = false;
+		document.getElementById("find_replace_b").disabled = false;
+
+//display number of molecules, the first smiles, and call function to show the first molecule.
+
+		output_holder.insertAdjacentHTML("beforeend",`Number of molecules in list: ${smiles_array.length}`);
+		
+		var smiles_element = document.getElementById("old_mol_display_name");
+		smiles_out = new_smiles.next().value;
+	
+		smiles_element.innerHTML = smiles_out;
+		display_molecule(smiles_out,"old_rdkit_canvas");	
+
+	} else{
+		alert("No SMILES column in CSV!");}
+}
+
+function display_molecule(smiles_in, which_canvas) {
+
+// draws the molecule in the canvas using RDKit ===========================================================================	
+
+	window.initRDKitModule()
+		.then(function(RDKit) {
+        	console.log("RDKit version: " + RDKit.version());
+        	window.RDKit = RDKit;
+		const smiles = smiles_in;
+		const mol = RDKit.get_mol(smiles);
+		var canvas = document.getElementById(which_canvas);
+		mol.draw_to_canvas(canvas, -1, -1);
+		});
+
+}
+
+function* get_subbed_smiles() {
+
+//generator for substituted molecule Smiles
+
+	original_length = sub_smiles.length;
+	
+	for (let i = 0; i < original_length; i++){
+		next_sub_smile = sub_smiles[i];
+		yield next_sub_smile;
+	}
+}
+
+function* get_smiles() {
+
+//generator for original molecule Smiles
+
+	original_length = smiles_array.length;
+	
+	for (let i = 0; i < original_length; i++){
+		next_smile = smiles_array[i];
+		yield next_smile;
+	}
+}
+
+async function find_replace() {
+
+//reset substituted list and text each time
+
+	sub_smiles.length = 0;
+	sub_name_array.length = 0;
+	new_and_old = Array.from(smiles_array);
+	
+	const output_holder = document.getElementById("subs_div");
+	output_holder.innerHTML = "";
+	
+	const smiles_element = document.getElementById("new_mol_display_name");
+	
+	const subs_buttons = document.getElementById("subs_buttons");
+	subs_buttons.innerHTML = "";
+
+	const waiting = document.getElementById("waiting");
+	waiting.style.display = "Block";
+
+//get all the values needed to create the substitutions
+
+	get_sub_values();
+	
+	sub_locations_re = [/cc/,                          //first unsubstituted carbons encountered
+					/c[1-9]cc/,                        //unsubstituted carbon 2 of ring
+					/ccc[1-9]/,                        //unsubstituted carbon 4 of ring
+					/c[1-9]c(\([A-Z]+\))?c/,           //carbon 2 of ring
+					/c[1-9]cc(\([A-Z]+\))?c/,          //carbon 3 of ring
+					/c[1-9]ccc(\([A-Z]+\))?c/,         //carbon 4 of ring
+					/c[1-9]cccc(\([A-Z]+\))?c/,        //carbon 5 of ring
+					/c[1-9]ccccc[1-9](\([A-Z]+\))?/,      //carbon 6 of ring *cant do this!
+					/cc/g];								//more than one unsubstituted carbon
+	
+	new_fragments = ["c(F)c","c(C#N)c","c(I)c","c([N+]([O-])=O)c","c(OC)c","c(Cl)c","c([NH3+])c","c(C)c"];
+
+//first search for a phenyl ring, the search for the general sub point, and finally replace the specific sub point with the new fragment
+
+	for (let i = 0; i < smiles_array.length; i++) {
+		
+		re_exists = smiles_array[i].match(/c[1-9]c(\([A-Z]+\))?c(\([A-Z]+\))?c(\([A-Z]+\))?c(\([A-Z]+\))?c[1-9]/);
+
+		if (re_exists != null && re_exists.length != 0) {
+			if (re_exists[0].includes(sub_point_one)) {	
+				new_mol = smiles_array[i].replace(sub_locations_re[sub_point_two], n => n.replace(sub_point_one,new_fragments[sub_point_three]));
+				
+				if (new_mol != smiles_array[i]) {
+					console.log("found a match!");
+					sub_smiles.push(new_mol);
+					new_and_old[i] = new_mol;}
+			}}
+		else {
+			console.log("no match!");}}
+
+//initialize the substituted molecule generator; display the first molecule; turn on button to scroll molecules.
+//write all the substituted molecules to a textarea for copy/pasting.
+
+	if (sub_smiles.length != 0) {
+		
+		console.log(`made ${sub_smiles.length} substitutions`);
+		new_subbed_smiles = get_subbed_smiles(); 
+		smiles_out = new_subbed_smiles.next().value;
+	
+		smiles_element.innerHTML = smiles_out;
+		display_molecule(smiles_out,"new_rdkit_canvas");
+		
+		document.getElementById("show_next_sub_b").disabled = false;
+		
+		output_holder.insertAdjacentHTML("beforeend",`Number of substitutions: ${sub_smiles.length}`);
+		
+		const table_section = document.getElementById("table_section");
+		const csv_out = document.getElementById("csv_section");
+		const no_csv_out = document.getElementById("no_csv_section");
+		no_csv_out.innerHTML = "";
+		
+		table_section.style.display = "Flex";
+		
+		csv_out.innerHTML = "Smiles\n";
+		sub_smiles.forEach( smile => {
+			csv_out.insertAdjacentHTML("beforeend",`${smile}\n`);});
+		csv_out.setAttribute("rows","10");
+		
+		await get_sub_names(new_and_old)
+		
+		no_csv_out.innerHTML = "Smiles,IUPAC name\n";
+		
+		let name_count = 0
+		new_and_old.forEach( function(smile,i) {
+			if (sub_name_array[i] != "\n") {
+				no_csv_out.insertAdjacentHTML("beforeend",`${smile},${sub_name_array[i]}`);
+				name_count += 1;}
+			else {
+				no_csv_out.insertAdjacentHTML("beforeend",`${smile},name not available\n`);
+				}});
+		no_csv_out.setAttribute("rows","10");
+		
+		const canvases = document.getElementById("canvas_div");
+		canvases.scrollIntoView({ behavior: "smooth", block: "start", inline: "nearest" });
+		
+		subs_buttons.insertAdjacentHTML("Beforeend",`Named ${name_count} / ${new_and_old.length} total molecules`);
+		waiting.style.display = "None";
+		}
+	else {
+		alert("No matches found!");}
+}
+
+function show_next_mol() {
+
+//shows the smiles and a drawing of the next molecule
+
+	var smiles_element = document.getElementById("old_mol_display_name");
+	smiles_out = new_smiles.next();
+	
+	if (smiles_out.done == true) {
+		alert("Done with list. Load a new CSV to continue.");
+		document.getElementById("display_molecule_b").disabled = true;}
+	else {
+		smiles_element.innerHTML = smiles_out.value;
+		display_molecule(smiles_out.value,"old_rdkit_canvas");
+	}
+}
+
+function show_next_sub() {
+
+//shows the smiles and a drawing of the next substituted molecule
+
+	var smiles_element = document.getElementById("new_mol_display_name");
+	smiles_out = new_subbed_smiles.next();
+	
+	if (smiles_out.done == true) {
+		alert("Done with list. Perform another substitution to continue.");
+		document.getElementById("show_next_sub_b").disabled = true;}
+	else {
+		smiles_element.innerHTML = smiles_out.value;
+		display_molecule(smiles_out.value,"new_rdkit_canvas");
+	}
+}
+
+function copy_smiles_list() {
+
+//copy the smiles list to the clipboard
+
+	var copyText = document.getElementById("csv_section");
+
+	copyText.select();
+	copyText.setSelectionRange(0, 99999);
+
+	navigator.clipboard.writeText(copyText.value);
+}
+
+function copy_no_smiles_list() {
+
+//copy the smiles list to the clipboard
+
+	var copyText = document.getElementById("no_csv_section");
+
+	copyText.select();
+	copyText.setSelectionRange(0, 99999);
+
+	navigator.clipboard.writeText(copyText.value);
+}
+
+async function get_sub_names(array_to_name) {
+	
+	var name_data;
+
+	const url_start = 'https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/';
+	const url_end = 'property/IUPACName/txt';
+	
+	for (let i = 0; i < array_to_name.length; i += 1) {
+		let smile = array_to_name[i]
+		smile = smile.replace(/\#/g,"%23").replace(/\+/g,"%2B");
+//		let req_url = url_start + smile + url_end;
+		let req_url = url_start+url_end+"?smiles="+smile
+			
+			await fetch(req_url, {method: 'GET'})
+				.then(response => {
+					if (response.ok) {
+						//console.log(response.ok);
+						return response.text();}
+					else {
+						throw new Error(`HTTP error: ${response.status}`);
+						return "could not get name";}
+						})
+				.then( data => {
+					name_data = data;})
+				.catch( (error) => {
+					console.log(`Could not get name: ${error}`);
+					name_data = "could not get name\n";})
+				.finally( () => {
+					sub_name_array.push(name_data);})
+	};
+	console.log(sub_name_array);
+	return sub_name_array;
+}
+
+async function download_csv() {
+	const export_link = document.getElementById("export_csv");
+	const no_csv_out = document.getElementById("no_csv_section");
+	
+	const current_url = export_link.href;
+	if (current_url) {
+		URL.revokeObjectURL(current_url);}
+	
+	const blob = new Blob([no_csv_out.innerHTML], {type: 'text/plain'});
+	const url = URL.createObjectURL(blob);
+	export_link.href = url
+	
+}
+
+</script>
+
+</html>

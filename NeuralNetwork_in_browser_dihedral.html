@@ -35,14 +35,14 @@
 			width: 30%;}
 			
 		#intro {
-			width: 100%;}
+			width: 95%;}
 
 		#main_flex {
 			display: flex;
 			flex-direction: row;
-			width: 100%;}
+			width: 95%;}
 	
-		#hider {
+		#hider, #pop_show {
 			color: #DFFF00;
 			cursor: grab;}
 		
@@ -59,10 +59,10 @@
 			color: #000000;
 			text-align: center;}
 
-		#layers_choice, #units_choice, #epochs_choice, #act_choice, #opt_choice {
+		#layers_choice, #units_choice, #epochs_choice, #act_choice, #opt_choice, #width_choice {
 			display: flex;
 			flex-direction: column;
-			width: 20%;}
+			width: 16.67%;}
 
 		#top_matter {
 			display: flex;
@@ -112,9 +112,11 @@
 
 		<div id="intro"> Fitting potential energy surfaces is one of the most common uses of Machine learning in 
 			computational chemistry. This app will allow you to use a deep neural network to predict the potential energy
-			curve for the N2 molecule. The figure below shows the potential curve calculatd with
+			curve for the 1-fluoro 2-nitro ethane molecule. The figure below shows the potential curve calculated with
 			wB97XD/aug-cc-pVTZ which is used as the "training" data for the DNN. The model will try to <em>learn</em> this 
-			training data and reproduce it as accurately as possible. You can select <em> hyper-parameters</em> for the DNN below.
+			training data and reproduce it as accurately as possible. <span id="pop_show"> Press here for a video of the 
+			dihedral angle of the molecule rotating across the barrier.</span>
+			You can select <em> hyper-parameters</em> for the DNN below.
 			<ul id="hp_description">
 				<li>The number of layers: each layer is a set of "neurons." A layer receives data, <em>transforms</em> that data, 
 					(see below) and then passes it on to the next layer. Each DNN has an <em>input</em> layer which reads in the data,
@@ -124,6 +126,10 @@
 				<li>The number of units: each layer <em>h</em> has a certain number of <em>units</em> which are akin to neurons. Each unit takes a piece
 					of input data, <em>x<sub>i</sub></em>,and first applies a linear transformation to it: <em>y<sub>h,i</sub> = M<sub>h</sub>x<sub>i</sub>+b<sub>h</sub></em>.
 					This <em>y<sub>h,i</sub></em> is then passed through an <em>activator</em> function (see below) before being passed to the next layer.</li>
+				<li>The width: the model can have a single stack of layers as described above, or it can have more than one stack of layers which come together
+					at the output layer. This gives the model more flexibility in learning. </li>
+				<li>Skip connections: this allows a copy of the input data to "skip" the layers and go directly to the output layer. This allows another 
+					path for learning, and preserves any information in the input data.</li>
 				<li>The activation: the transformed data <em>y<sub>h,i</sub></em> is passed through a non-linear activation function so that we don't just
 					end up with linear-regression. The non-linear functions can include hyperbolic tangent, a sigmoid function, or a special transformation called a	
 					rectified linear unit. Each activation is appropriate for different situations. </li>
@@ -135,7 +141,7 @@
 					the answer. Some problems need more or less training that others.</li> 
 				<li>The training process is compute-intensive, so it will take a while (usually a minute or so). The epoch update will show your progress.
 			</ul>
-		<div id="hider">Press here to hide/show neural network options</div>
+		<div id="hider">Press here to hide/show neural network option descriptions.</div>
 		<hr>
 		</div>
 		<div id="choice_holder">
@@ -174,6 +180,29 @@
 				<input type="radio" id="units_150" name="number_units_choice" value="150">
 				<label for="units_150">150 units/neurons </label>
 				</div>
+				<div>
+				<input type="radio" id="units_200" name="number_units_choice" value="200">
+				<label for="units_200">200 units/neurons </label>
+				</div>
+			</div>
+			<div id = "width_choice">
+				<div>
+				<input type="radio" id="width_1" name="width_choice" value="1" checked>
+				<label for="width_1">1 stack of layers </label>
+				</div>
+				<div>
+				<input type="radio" id="width_2" name="width_choice" value="2">
+				<label for="width_2">2 stacks of layers </label>
+				</div>
+				<br>
+				<div>
+				<input type="radio" id="skip_true" name="skip_choice" value=true checked>
+				<label for="skip_true">Skip connection</label>
+				</div>
+				<div>
+				<input type="radio" id="skip_false" name="skip_choice" value=false>
+				<label for="skip_false">No skip connection</label>
+				</div>
 			</div>
 			<div id = "act_choice">
 				<div>
@@ -187,6 +216,14 @@
 				<div>
 				<input type="radio" id="act_tanh" name="which_act_choice" value="tanh">
 				<label for="act_tanh"><em>tanh</em> activation </label>
+				</div>
+				<div>
+				<input type="radio" id="act_swish" name="which_act_choice" value="swish">
+				<label for="act_swish"><em>swish</em> activation </label>
+				</div>
+				<div>
+				<input type="radio" id="act_relu6" name="which_act_choice" value="relu6">
+				<label for="act_relu6"><em>relu6</em> activation </label>
 				</div>
 			</div>
 			<div id = "opt_choice">
@@ -202,23 +239,31 @@
 				<input type="radio" id="opt_adagrad" name="which_opt_choice" value="adagrad">
 				<label for="opt_adagrad"><em>adagrad</em> optimization </label>
 				</div>
+				<div>
+				<input type="radio" id="opt_adamax" name="which_opt_choice" value="adamax">
+				<label for="opt_adamax"><em>adamax</em> optimization </label>
+				</div>
+				<div>
+				<input type="radio" id="opt_adadelta" name="which_opt_choice" value="adadelta">
+				<label for="opt_adadelta"><em>adadelta</em> optimization </label>
+				</div>
 			</div>
 			<div id = "epochs_choice">
 				<div>
-				<input type="radio" id="epochs_20" name="number_epochs_choice" value="20" checked>
-				<label for="epochs_20">20 epochs </label>
-				</div>
-				<div>
-				<input type="radio" id="epochs_50" name="number_epochs_choice" value="50">
+				<input type="radio" id="epochs_50" name="number_epochs_choice" value="50" checked>
 				<label for="epochs_50">50 epochs </label>
-				</div>
-				<div>
-				<input type="radio" id="epochs_100" name="number_epochs_choice" value="100">
-				<label for="epochs_100">100 epochs </label>
 				</div>
 				<div>
 				<input type="radio" id="epochs_150" name="number_epochs_choice" value="150">
 				<label for="epochs_150">150 epochs </label>
+				</div>
+				<div>
+				<input type="radio" id="epochs_300" name="number_epochs_choice" value="300">
+				<label for="epochs_300">300 epochs </label>
+				</div>
+				<div>
+				<input type="radio" id="epochs_500" name="number_epochs_choice" value="500">
+				<label for="epochs_500">500 epochs </label>
 				</div>
 			</div>
 		</div>
@@ -244,8 +289,8 @@
 			<div id="plot_holder1" >
 			</div>
 			<div id="prediction_holder" >
-				<label>Enter bond length for energy prediction (&angst;): </label>
-				<input type="number" id="bond_length" placeholder=0 onwheel="this.blur()" style="width: 30px" >
+				<label>Enter dihedral angle for energy prediction (degrees): </label>
+				<input type="number" id="dihedral_angle" placeholder=0 onwheel="this.blur()" style="width: 30px" >
 				<div id = "answer_holder"></div>
 			</div>
 		</div>
@@ -267,45 +312,52 @@ var epcs;
 var activator;
 var optimizer_l;
 var model;
+var width_option;
+var skip_option;
 
 var axis_length;
 var xlim;
 var y_lim;
 
-var energy_e = document.getElementById("bond_length");
+var energy_e = document.getElementById("dihedral_angle");
 energy_e.addEventListener("change",get_energy);
 
 var hpd = document.getElementById("hp_description");
 document.getElementById("hider").addEventListener("click", () => {
 	if (hpd.style.display == "block"){hpd.style.display = "None";}
 	else {hpd.style.display = "Block";}});
+	
+document.getElementById("pop_show").addEventListener("click", () => {
+	var show_mol = window.open("mol_window.html","mol_window","toolbar=no,status=no,width=300");});
 
 //define dihedral potential ===============================================================================================
 
-//var y_raw = [...y_angle_raw_dft];
-//var x_arr = [...x_angle_arr]; 
+var y_raw = [...y_angle_raw_dft];
+var x_arr = [...x_angle_arr]; 
 
-//scaler = Math.min(...y_raw)
-//const y_arr = y_raw.map(y => (y-scaler)*100);
+scaler = Math.min(...y_raw)
+const y_arr = y_raw.map(y => (y-scaler)*100);
 //=========================================================================================================================
 
 //define diatomic potential ===============================================================================================
-var y_raw = [...y_bl_raw_dft];
-var x_arr = [...x_bl_arr];
+//var y_raw = [...y_bl_raw_dft];
+//var x_arr = [...x_bl_arr];
 
-scaler = y_raw[y_raw.length-1];
-const y_arr = y_raw.map(y => (y-scaler));
+//scaler = y_raw[y_raw.length-1];
+//const y_arr = y_raw.map(y => (y-scaler));
 //=========================================================================================================================
 
 make_plot(x_arr,y_arr,"plot_holder1")
 
-{
-let output = document.getElementById("answer_holder");
-let bottom_curve = Math.min(...y_arr);
-let end_curve = y_arr[y_arr.length-1];
-let binding_energy = 627.5095*(bottom_curve - end_curve);
-binding_energy = Math.round(binding_energy*1000)/1000;
-output.insertAdjacentHTML("beforeEnd",`wB97XD Predicted binding energy: ${binding_energy} kcal/mol. <br>`);
+{	
+	var output = document.getElementById("answer_holder");
+	var bottom_curve = Math.min(...y_arr);
+	var top_curve = Math.max(...y_arr);
+	var barrier_energy = 627.5095*(top_curve - bottom_curve);
+	barrier_energy = Math.round(barrier_energy*100)/100;
+	barrier_energy = (barrier_energy/100);
+	console.log(bottom_curve,top_curve);
+	output.insertAdjacentHTML("beforeEnd",`wB97XD Predicted barrier height: ${barrier_energy} kcal/mol. <br>`);
 }
 
 function get_hyper_parameters() {
@@ -317,6 +369,8 @@ function get_hyper_parameters() {
 	var number_epochs_choice  = document.getElementsByName("number_epochs_choice");
 	var which_act_choice  = document.getElementsByName("which_act_choice");
 	var which_opt_choice  = document.getElementsByName("which_opt_choice");
+	var width_choice  = document.getElementsByName("width_choice");
+	var skip_choice  = document.getElementsByName("skip_choice");
 	
 //Sets hyper-parameter values values; above gets radio buttons for each choice ===============================================
 //below: gets the value for the chosen radio buton and gets the name of the choice 
@@ -343,6 +397,14 @@ function get_hyper_parameters() {
 	for (i = 0; i < which_opt_choice.length; i++) {
                 if (which_opt_choice[i].checked){
                     optimizer_l = which_opt_choice[i].value;}}
+	
+	for (i = 0; i < width_choice.length; i++) {
+                if (width_choice[i].checked){
+                    width_option = width_choice[i].value;}}
+	
+	for (i = 0; i < skip_choice.length; i++) {
+                if (skip_choice[i].checked){
+                    skip_option = skip_choice[i].value;}}
 }
 
 function start_training() {
@@ -374,12 +436,14 @@ function clear_training() {
 	make_plot(x_arr,y_arr,"plot_holder1")
 	
 	{
-	let output = document.getElementById("answer_holder");
-	let bottom_curve = Math.min(...y_arr);
-	let end_curve = y_arr[y_arr.length-1];
-	let binding_energy = 627.5095*(bottom_curve - end_curve);
-	binding_energy = Math.round(binding_energy*1000)/1000;
-	output.insertAdjacentHTML("beforeEnd",`wB97XD Predicted binding energy: ${binding_energy} kcal/mol. <br>`);
+	var output = document.getElementById("answer_holder");
+	var bottom_curve = Math.min(...y_arr);
+	var top_curve = Math.max(...y_arr);
+	var barrier_energy = 627.5095*(top_curve - bottom_curve);
+	barrier_energy = Math.round(barrier_energy*100)/100;
+	barrier_energy = (barrier_energy/100);
+	console.log(bottom_curve,top_curve);
+	output.insertAdjacentHTML("beforeEnd",`wB97XD Predicted barrier height: ${barrier_energy} kcal/mol. <br>`);
 }
 }
 
@@ -405,16 +469,57 @@ async function training_nn(x_arr,y_arr) {
 		update_holder.innerHTML = `Current Epoch: ${epoch}/${epcs} loss: ${loss[1]}`;
 		data_display.insertAdjacentHTML("beforeEnd",update_string);}};
 	
-	model = tf.sequential();
-	model.add(tf.layers.dense({inputShape: 1, units: ntlu, activation: activator}));
-	for (let i = 1; i <= number_layers; i++) { 
-		model.add(tf.layers.dense({units: ntlu, activation: activator}));}
-	model.add(tf.layers.dense({units: 1}));
+	var input_l = tf.input({shape: [1]});
+	var dense0 = tf.layers.dense({units: ntlu, activation: activator}).apply(input_l);
+	
+	if (number_layers ==1){
+		var dense_last = tf.layers.dense({units: ntlu, activation: activator}).apply(dense0); 
+		if (width_option == 2){
+			var dense_last2 = tf.layers.dense({units: ntlu, activation: activator}).apply(dense0);}}
+	else if (number_layers == 2){
+		var dense1 = tf.layers.dense({units: ntlu, activation: activator}).apply(dense0);
+		var dense_last = tf.layers.dense({units: ntlu, activation: activator}).apply(dense1);
+		if (width_option == 2){
+			var densea = tf.layers.dense({units: ntlu, activation: activator}).apply(dense0);
+			var dense_last2 = tf.layers.dense({units: ntlu, activation: activator}).apply(densea);}}
+	else if (number_layers == 3){
+		var dense1 = tf.layers.dense({units: ntlu, activation: activator}).apply(dense0);
+		var dense2 = tf.layers.dense({units: ntlu, activation: activator}).apply(dense1);
+		var dense_last = tf.layers.dense({units: ntlu, activation: activator}).apply(dense2);
+		if (width_option == 2){
+			var densea = tf.layers.dense({units: ntlu, activation: activator}).apply(dense0);
+			var denseb = tf.layers.dense({units: ntlu, activation: activator}).apply(densea);
+			var dense_last2 = tf.layers.dense({units: ntlu, activation: activator}).apply(denseb);}}
+	else if (number_layers == 4){
+		var dense1 = tf.layers.dense({units: ntlu, activation: activator}).apply(dense0);
+		var dense2 = tf.layers.dense({units: ntlu, activation: activator}).apply(dense1);
+		var dense3 = tf.layers.dense({units: ntlu, activation: activator}).apply(dense2);
+		var dense_last = tf.layers.dense({units: ntlu, activation: activator}).apply(dense3);
+		if (width_option == 2){
+			var densea = tf.layers.dense({units: ntlu, activation: activator}).apply(dense0);
+			var denseb = tf.layers.dense({units: ntlu, activation: activator}).apply(densea);
+			var densec = tf.layers.dense({units: ntlu, activation: activator}).apply(denseb);
+			var dense_last2 = tf.layers.dense({units: ntlu, activation: activator}).apply(densec);}}
+
+	if (skip_option == "true" && width_option == 1) {
+		var concat = tf.layers.concatenate().apply([input_l,dense_last]);
+		var output_l = tf.layers.dense({units: 1}).apply(concat);}
+	else if (skip_option == "true" && width_option == 2) {
+		var concat = tf.layers.concatenate().apply([input_l,dense_last,dense_last2]);
+		var output_l = tf.layers.dense({units: 1}).apply(concat);}
+	else if(skip_option == "false" && width_option == 2) {
+		var concat = tf.layers.concatenate().apply([dense_last,dense_last2]);
+		var output_l = tf.layers.dense({units: 1}).apply(concat);}
+	else {
+		var output_l = tf.layers.dense({units: 1}).apply(dense_last);}
+	
+	model = tf.model({inputs: input_l, outputs: output_l});
+	
 	model.compile({optimizer: optimizer_l, loss: "meanSquaredError"});
 
 	model.summary();
 
-	await model.fit(x_tens, y_tens, {epochs: epcs, callbacks: printCallback, batchSize: 64});
+	await model.fit(x_tens, y_tens, {epochs: epcs, callbacks: printCallback, batchSize: 256});
 
 	const y_pred = model.predict(x_tens);
 
@@ -429,10 +534,11 @@ async function training_nn(x_arr,y_arr) {
 	
 	var output = document.getElementById("answer_holder");
 	var bottom_curve = Math.min(...pred_arr);
-	var end_curve = pred_arr[pred_arr.length-1];
-	var binding_energy = 627.5095*(bottom_curve - end_curve);
-	binding_energy = Math.round(binding_energy*1000)/1000;
-	output.insertAdjacentHTML("beforeEnd",`DNN Predicted binding energy: ${binding_energy} kcal/mol. <br>`);
+	var top_curve = Math.max(...pred_arr);
+	var barrier_energy = 627.5095*(top_curve - bottom_curve);
+	barrier_energy = Math.round(barrier_energy*1000)/1000;
+	barrier_energy = (barrier_energy/100);
+	output.insertAdjacentHTML("beforeEnd",`DNN Predicted barrier height: ${barrier_energy} kcal/mol. <br>`);
 
 	y_pred.dispose();
 	y_tens.dispose();
@@ -514,21 +620,23 @@ function add_plot(x_arr,y_arr,plot_area) {
 
 function get_energy() {
 
-//accept a bond length and use the model to predict energy. ===============================================================
+//accept a dihedral angle and use the model to predict energy. ===============================================================
 
-	var bond_length = document.getElementById("bond_length").valueAsNumber;
+	var dihedral_angle = document.getElementById("dihedral_angle").valueAsNumber;
 	
-	const t_tens = tf.tensor([bond_length]);
+	rad_dihedral_angle = dihedral_angle*Math.PI/180;
+	const t_tens = tf.tensor([rad_dihedral_angle]);
 	const y_pred = model.predict(t_tens);
 	var pred_arr = y_pred.arraySync();
 	
-	var energy = Number(pred_arr[0])+Number(scaler);
+	var energy = Number(pred_arr[0]/100)+Number(scaler);
 	energy = Math.round(energy*1000)/1000;
+	
 
 	var output = document.getElementById("answer_holder");
 	
 	
-	output.insertAdjacentHTML("beforeEnd",`DNN Energy at ${bond_length} &angst; is ${energy} ha. <br>`);
+	output.insertAdjacentHTML("beforeEnd",`DNN energy at ${dihedral_angle} degrees; is ${energy} ha. <br>`);
 	
 	y_pred.dispose();
 	t_tens.dispose();

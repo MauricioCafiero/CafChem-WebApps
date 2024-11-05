@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+	<script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+	<script src="https://unpkg.com/babel-standalone/babel.min.js"></script>
+	<script type="module" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+	<title>PIB calculator. </title>
+	<style>
+		body {
+			color: White;
+			background-color: #26292B;
+			min-height: 100vh;
+			width: 95%;}
+		
+		#main_title {
+			border-radius: 25px;
+			display: flex;
+			flex-direction: row;
+			text-align: left;
+			margin: 0% 5% 2% 5%;
+			background-color: #5F7ADB;
+			width: 90%;}
+		
+		#main_flex {
+			width: 100%;
+			display: flex;
+			flex-direction: row;
+			flex-wrap: wrap;
+			align-content: space-around;
+			justify-content: space-evenly;}
+		
+		#intro {
+			width: 100%;}
+		
+		#flex_box_1 {
+			width: 100%;
+			display: flex;
+			flex-direction: row;
+			flex-wrap: wrap;
+			align-content: space-around;
+			justify-content: space-evenly;}
+		
+		#menu_holder{
+			display: flex;
+			flex-direction: row;}
+			
+		.menu_box {
+			border-radius: 25px;
+			margin: 0% 2% 0% 2%;
+			text-align: center;
+			background-color: #DFFF00;
+			width: 22%;}
+		
+		.prompts {
+			width: 22%;
+			margin: 3% 0% 3% 0%;
+			border: 5px solid #5F7ADB;
+			text-align: center;
+			align-content: center;}
+		
+		.values {
+			width: 50%;
+			height: 1rem;}
+		
+		.responses {
+			width: 22%;
+			margin: 3% 0% 3% 0%;
+			border: 5px solid #DFFF00;
+			text-align: center;
+			align-content: center;}
+		
+		#pib_canvas, #plot_canvas {
+			width: 400px;
+			height: 400px;
+			background-color: white;}
+			
+		#canvas_holder {
+			display: flex;
+			flex-direction: row;
+			flex-wrap: wrap;
+			align-content: space-around;
+			justify-content: space-evenly;}
+		
+		a:hover {
+			color: #33ff96;
+			transition: 2s ease;
+			transform: scale(1.15);}
+			
+		a:link {
+			color: White;}	
+			
+		a:visited {
+			color: #DFFF00;}
+	</style>
+</head>
+
+<body>
+	<div id="main_title"> <img  style="padding: 2% 1% 1% 5%;" src="images/comp_chem_2_small.jpg" alt="Computer"> 
+		<h1 style="padding: 50px;">1-Dimensional Particle in a Box Calculator.</h1>
+	</div>
+	
+	<div id="menu_holder">
+		<a class="menu_box" href="Chem_webapps_frontpage.html" style="color: #00008B;">Chemistry Web Apps</a>
+	</div>
+	<br>
+	<div id="intro">
+		<h3>Use this app to calculate energy levels, transition wavelengths and other properties for a one dimensional particle-in-a-box.</h3>
+		<details open>
+		<ul>
+			<li>To get started, enter your particle mass, box length, and number of electrons. The app will calculate the energy multiplier, the quantum number for the HOMO,
+			the HOMO and LUMO energies, and the HOMO/LUMO transition wavelength. It will also plot the HOMO wavefunction and probability density, and draw an
+			energy level diagram. </li>
+			<li>You may also enter any two quantum numbers for a transition wavelength calculation.</li>
+			<li>All properties will update automaticallly.</li>
+			<li>Energies are calculated according to: <em>E<sub>n</sub> = (n<sup>2</sup>h<sup>2</sup>)/(8mL<sup>2</sup>)</em></li>
+			<li>Wavelengths are calcuated according to: <em> &#955;	= hc/&#916;E</em></li>
+		</ul>
+		</details>
+	</div>
+	<hr>
+	<section id = "main_flex">
+		
+	</section>
+	<div id="canvas_holder">
+		<div><canvas id="pib_canvas" width=400px height=400px"></canvas></div>
+		<div><canvas id="plot_canvas" width=400px height=400px"></canvas></div>
+	</div>
+	<p>This is the work of Dr. Mauricio Cafiero and may be used widely though atribution is appreciated.</p>
+
+</body>
+
+<script type="text/babel">
+
+var h = 6.626E-34
+var c = 3.0E8 
+
+function draw_canvas(prop_object) {
+//sets up the canvas and draws the energy level diagram.=================================================
+//receives an object with each property for the Convertor component.
+
+	let pib_canvas = document.getElementById("pib_canvas");
+	let c_width = pib_canvas.width;
+	let c_height = pib_canvas.height;
+	
+	c = pib_canvas.getContext("2d");
+	c.clearRect(0, 0, c_width, c_height);
+	
+	c.strokeStyle = "#000000";
+	c.fillStyle = "#000000";
+	c.strokeRect(0,0,c_width,c_height);
+	c.font = "14px Arial";
+	
+//define variables needed for energy calculation and drawing =============================================
+
+	let mass = prop_object["mass"];
+	let b_length = prop_object["b_length"];
+	let elec = prop_object["elec"];
+	let homo = Math.ceil(elec/2);
+	let gamma = Math.pow((h/(b_length*Math.pow(10,-10))),2)/(8*mass);
+	let scale_factor = 25;
+	let x1 = c_width*0.15;
+	let x_x = c_width*0.25;
+	let x2 = c_width*0.35;
+	let y1_o = c_height*0.95;
+	let y1 = y1_o - scale_factor;
+	let y2 = y1;
+	
+//checks if the ELD is going off-scale and re-scales if needed. ============================================
+
+	let test_scale = y1_o - scale_factor*Math.pow(homo+2,2);
+	while (test_scale < 0) {
+		scale_factor = scale_factor*0.80;
+		console.log("resetting scale factor");
+		test_scale = y1_o - scale_factor*Math.pow(homo+2,2);}
+	
+//draws energy levels and labels ============================================================================
+
+	for (let i = 1; i < homo+3; i += 1){
+		c.beginPath();
+		c.moveTo(x1,y1);
+		c.lineTo(x2,y2);
+		c.stroke();
+
+		let E_n = (gamma*Math.pow(i,2)).toPrecision(4);
+		
+		let test_text = Math.abs(scale_factor*Math.pow(i,2) - scale_factor*Math.pow(i+1,2));
+		if (test_text > 16) {
+			c.fillText(`n=${i}, E=${E_n} J`, x2+0.05*c_width,y2);};
+		
+		y1 = y1_o - scale_factor*Math.pow(i+1,2);
+		y2 = y1;
+	}
+
+//draw and label  a transition line ==========================================================================
+
+	let y_x1 = y1_o - scale_factor*Math.pow(homo,2);
+	let y_x2 = y1_o - scale_factor*Math.pow(homo+1,2);
+	
+	c.strokeStyle = "#DC143C"
+	c.beginPath();
+	c.moveTo(x_x,y_x1);
+	c.lineTo(x_x,y_x2);
+	c.stroke();
+	c.fillStyle = "#DC143C";
+	c.fillText("HOMO/LUMO transition",x_x+5, (y_x1+y_x2)/2)
+	c.fillStyle = "#000000";
+
+//label the y-axis =============================================================================================
+	c.save();				//translate and rotate coordinate system to tilt 
+	c.font = "20px Arial";
+	c.translate(c_width*0.10, c_height-0.4*c_height);
+	c.rotate(-Math.PI/2);
+	c.fillText("Energy ---->",0,0)
+	c.restore();
+}
+
+function draw_plot(prop_object,destroy_old) {
+
+//sets up and draws plot using chart.js ===================================================================
+//receives an object with all properties from the Convertor component, and a flag to destroy the old chart
+
+	let plot_canvas = document.getElementById("plot_canvas");
+	let c_width = plot_canvas.width;
+	let c_height = plot_canvas.height;
+	
+	c = pib_canvas.getContext("2d");
+	if(destroy_old) {
+		let chartStatus = Chart.getChart("plot_canvas"); // <canvas> id
+		if (chartStatus != undefined) {
+			chartStatus.destroy();
+		}}
+	c.clearRect(0, 0, c_width, c_height);
+	
+	let b_length = prop_object["b_length"];
+	let elec = prop_object["elec"];
+	let homo = Math.ceil(elec/2);
+	let multiplier = homo*Math.PI/b_length;
+	let steps = b_length/100;
+
+//set up x and y arrays needed for the chart ===================================================================
+
+	let x_arr = new Array();
+	let y_arr = new Array();
+	let y2_arr = new Array();
+	let combined_array = new Array();
+	let combined2_array = new Array();
+	
+	for (let i=0; i<100; i++) {
+		let temp_x = i*steps;
+		let temp_y = (Math.sqrt(2/b_length))*Math.sin(temp_x*multiplier);
+		x_arr.push(temp_x);
+		y_arr.push(temp_y);}
+	
+	y_arr.forEach( y => {
+		y2_arr.push(y*y);});
+
+//set up the objects for the chart from the x and y arrays =======================================================
+
+	x_arr.forEach(function(xval,index) {
+		let temp_object = {x:xval, y:y_arr[index]};
+		combined_array.push(temp_object);})
+	
+	x_arr.forEach(function(xval,index) {
+		let temp_object = {x:xval, y:y2_arr[index]};
+		combined2_array.push(temp_object);})
+	
+//make the chart ==================================================================================================
+
+	let PIB_chart = new Chart(document.getElementById("plot_canvas"),{
+		type: "scatter",
+		data: {
+			datasets: [
+			{	label: "\u03C8(x)",
+				showLine: false,
+				pointRadius: 4, PointBackgroundColor: "#0000ff",
+				data: combined_array},
+			{	label: "P(x)",
+				showLine: false,
+				pointRadius: 4, PointBackgroundColor: "#ff0000",
+				data: combined2_array},	
+				]},
+		options: {
+			legend: {display: true},
+			plugins: {
+			title: {
+                display: true,
+                text: "HIghest Occupied Molecular Orbital"},
+            subtitle: {
+                display: true,
+                text: "1D Particle in a Box"},
+			legend: {align: 'center',
+                     display: true,
+                     position: 'right'}	},
+			scales: {
+				x: {type: "linear",
+					title: {
+					display: true,
+					text: "x (Angstrom)"}},
+				y: {type: "linear",
+					title: {
+					display: true,
+					text: "\u03C8(x), P(x)"}}
+			}}
+	});
+	
+	plot_canvas.scrollIntoView({ behavior: "smooth", block: "start", inline: "nearest" });
+}
+
+class Convertor extends React.Component {
+	constructor() {
+		super();
+		this.state = {};
+		this.onMassChange = this.onMassChange.bind(this);
+		this.onLengthChange = this.onLengthChange.bind(this);
+		this.onElecChange = this.onElecChange.bind(this);
+		this.onNinitChange = this.onNinitChange.bind(this);
+		this.onNfinChange = this.onNfinChange.bind(this);
+	}
+	
+	onMassChange(event) {
+		this.setState({
+			mass: event.target.value,
+		});
+	}
+	
+	onLengthChange(event) {
+		this.setState({
+			b_length: event.target.value,
+		});
+	}
+	
+	onElecChange(event) {
+		this.setState({
+			elec: event.target.value,
+		});
+	}
+	
+	onNinitChange(event) {
+		this.setState({
+			ninit: event.target.value,
+		});
+	}
+	
+	onNfinChange(event) {
+		this.setState({
+			nfin: event.target.value,
+		});
+	}
+	
+	shouldComponentUpdate(newProps,newState) {
+		let all_updated_props = Object.keys(newState);
+		let temp_obj = new Object();
+		for (const property in newProps) {
+			if (all_updated_props.includes(property)){
+				//console.log(`new state: ${property}:${newState[property]}`);
+				let temp_prop = property;
+				temp_obj[temp_prop] = newState[property];
+				}
+			else {					
+				//console.log(`old state: ${property}:${newProps[property]}`);
+				let temp_prop = property;
+				temp_obj[temp_prop] = newProps[property];
+				}
+		};
+		//console.log(temp_obj);
+		draw_plot(temp_obj,true);
+		draw_canvas(temp_obj);
+		return true;
+	}
+	
+	componentDidMount() {
+		draw_plot(this.props,false);
+		draw_canvas(this.props);
+	}
+
+	render() {
+		const mass = 'mass' in this.state ? this.state.mass : this.props.mass;
+		let b_length = 'b_length' in this.state ? this.state.b_length : this.props.b_length;
+		const elec = 'elec' in this.state ? this.state.elec : this.props.elec;
+		const ninit = 'ninit' in this.state ? this.state.ninit : this.props.ninit;
+		const nfin = 'nfin' in this.state ? this.state.nfin : this.props.nfin;
+		let gamma = Math.pow((h/(b_length*Math.pow(10,-10))),2)/(8*mass);
+		gamma = gamma.toPrecision(4);
+		
+		return (
+			<div id="flex_box_1">
+				<div className="prompts"> Enter a particle mass below (kg): <br/>
+					<input type="number" className="values" value={mass} onChange={event => this.onMassChange(event)} />
+				</div>
+				<div className="prompts"> Enter a box length below (Angstroms): <br/>
+					<input type="number" className="values" value={b_length} onChange={event => this.onLengthChange(event)} />
+				</div>
+				<div className="prompts"> Enter the number of electrons below: <br/>
+					<input type="number" className="values" value={elec} onChange={event => this.onElecChange(event)} />
+				</div>
+				<div className="prompts"> Enter an <strong>initial and final n </strong>value for a transition below: <br/>
+					<label>n<sub>i</sub>  </label>
+					<input type="number" className="values" value={ninit} onChange={event => this.onNinitChange(event)} /> <br/>
+					<label>n<sub>f</sub>  </label>
+					<input type="number" className="values" value={nfin} onChange={event => this.onNfinChange(event)} />
+				</div>
+				<br/>
+				<div className="responses">
+					The energy multiplier is:<br/>
+					<em>h<sup>2</sup>/(8mL<sup>2</sup>)</em>  = {gamma} J.<br/><br/>
+					The highest occupied orbital is <em>n={Math.ceil(elec/2)}</em>
+				</div>
+				<div className="responses">
+					The highest occupied orbital has an energy of: {(Math.pow(Math.ceil(elec/2),2)*gamma).toPrecision(4)} J.<br/><br/>
+					The lowest unoccupied orbital has an energy of: {(Math.pow(Math.ceil((elec/2)+1),2)*gamma).toPrecision(4)} J.<br/>
+				</div>
+				<div className="responses">
+					The HOMO/LUMO gap energy is: {((2*Math.ceil(elec/2)+1)*gamma).toPrecision(4)} J.<br/><br/>
+					The transition wavelength is: {(Math.pow(10,17)*((3*h/gamma)/(2*Math.ceil(elec/2)+1))).toFixed(2)} nm.<br/>
+				</div>
+				<div className="responses">
+					The transition energy between levels {ninit} and {nfin} is: {(Math.abs((Math.pow(ninit,2)-Math.pow(nfin,2))*gamma)).toPrecision(4)} J.<br/><br/>
+					The transition wavelength is: {(Math.pow(10,17)*(h*3/Math.abs((Math.pow(ninit,2)-Math.pow(nfin,2))*gamma))).toFixed(2)} nm. <br/>
+				</div>
+			</div>
+		);
+	}
+
+}
+
+Convertor.defaultProps = {
+	mass: 9.1E-31,
+	b_length: 10,
+	elec: 4,
+	ninit: 2,
+	nfin: 3,
+};
+
+ReactDOM.render(
+	<Convertor />,
+	document.getElementById("main_flex")
+);
+
+</script>
+
+</html>
