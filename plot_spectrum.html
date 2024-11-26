@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<title>Plot spectrum.</title>
+	<script type="module" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+	<style>
+		body {
+			color: White;
+			background-color: #26292B;
+			min-height: 100vh;
+			width: 95%;}	
+		
+		#main_title {
+			border-radius: 25px;
+			display: flex;
+			flex-direction: row;
+			text-align: left;
+			margin: 0% 5% 2% 5%;
+			background-color: #5F7ADB;
+			width: 90%;}
+		
+		#menu_holder{
+			display: flex;
+			flex-direction: row;}
+			
+		.menu_box {
+			border-radius: 25px;
+			margin: 0% 2% 0% 2%;
+			text-align: center;
+			background-color: #DFFF00;
+			width: 30%;}
+
+		#main_grid {
+			display: grid;
+			grid-template-columns: 50% 50%;
+			grid-template-rows: auto auto;
+			grid-template-areas:
+				"box1 box2"
+				"box3 box4";}
+		#box1 {
+			grid-area: box1;
+			vertical-align: middle;
+			text-align: center;}		
+		
+		#intro {
+			width: 100%;}
+
+		#main_flex {
+			display: flex;
+			flex-direction: column;
+			width: 100%;
+			flex-wrap: wrap;
+			align-content: space-around;
+			justify-content: space-evenly;
+			}
+
+		#flex_div1 {
+			width: 100%;
+			text-align: left;
+			display: flex;
+			flex-direction: row;}
+
+		#flex_div2 {
+			width: 100%;
+			text-align: left;
+			display: none;
+			flex-direction: column;
+			margin: 3%;}
+		
+		.cols {
+			overflow: hidden; 
+			text-wrap: nowrap; 
+			outline: solid white; 
+			margin: 0% 2% 0% 2%;
+			text-align: center;}
+
+		#plot_holder{
+			margin: auto;}
+
+		#mol_display_name {
+			margin: auto;}
+
+		#plot_canvas {
+			background-color: white;
+			margin: auto;}
+		
+		#choice_holder {
+			display: flex;
+			flex-direction: row;
+			width: 45%;
+			align-content: space-around;
+			justify-content: space-evenly;}
+		
+		#upload_holder {
+			display: flex;
+			flex-direction: column;
+			width: 45%;
+			flex-wrap: wrap;
+			align-content: space-around;
+			justify-content: space-evenly;}
+		
+		.each_choice {
+			display: flex;
+			flex-direction: column;
+			width: 48%;
+			flex-wrap: wrap;
+			align-content: space-around;
+			justify-content: space-evenly;}
+			
+		input::-webkit-outer-spin-button,
+		input::-webkit-inner-spin-button {
+  		-webkit-appearance: none;
+  		margin: 0;}
+
+		input[type=number] {
+			text-align: center; 
+			-moz-appearance: textfield;}
+		
+		button {text-align: center;
+			width: 200px;}
+
+		hr {color: white;}
+	</style>
+</head>
+
+<body>
+	<div id="main_title"> <img  style="padding: 2% 1% 1% 5%;" src="images/comp_chem_2_small.jpg" alt="Computer"> 
+		<h1 style="padding: 50px;">Plot the spectrum from the Benzoic Acid/caffeine practical.</h1>
+	</div>
+	
+	<div id="menu_holder">
+		<a class="menu_box" href="Chem_webapps_frontpage.html" style="color: #00008B;">Back to Chemistry Web Apps</a>
+		<a class="menu_box" href="Benzoic_Caffeine_prac.html" style="color: #00008B;">Back Benzoic Acid/caffeine practical.</a>
+	</div>
+	<br>
+
+	<div id="intro">
+		<ul>
+			<li>Choose which molecule to analyze.</li>
+			<li>Load the file you saved from the Jenway spectrometer.</li>
+			<li>Press the "Read data from file" button to process.</li>
+		</ul>
+	</div>
+	<div><hr></div>
+	<section id = "main_flex">
+		<div id = "flex_div1">
+			<div id ="upload_holder">
+				<label for="choose_file"> Select a CSV file to process.</label>
+				<input type="file" id="choose_file" accept=".txt">
+				<br>
+				<button id="read_csv_b" onclick="read_csv()">Read data from file.</button>
+			</div>
+			<div id="choice_holder">
+				<div class = "each_choice">
+					<div>Molecule <hr>
+					</div>
+					<div>
+						<input type="radio" id="Caffeine" name="molecule_choice" value="Caffeine" checked>
+						<label for="hydroxyl">Caffeine. </label>
+					</div>
+					<div>
+						<input type="radio" id="Benzoic Acid" name="molecule_choice" value="Benzoic Acid">
+						<label for="methoxy">Benzoic Acid. </label>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div><hr></div>
+		<div id = "flex_div2">
+			<span id = "result_of_calc"></span>
+			<div id="plot_holder"> <canvas id = "plot_canvas" height = 500 width = 500></canvas></div>
+		</div>
+	</section>
+	<div id="table_section"></div>
+	<p>This is the work of Dr. Mauricio Cafiero and may be used widely though attribution is appreciated.</p>
+
+</body>
+
+<script>
+
+// define global variables ================================================================================================
+
+var number_columns, number_points; 
+var column_titles = new Array;
+var smiles_array = new Array;
+var x_prop_name = new String();
+var y_prop_name = new String();
+var max_columns = 10
+
+function get_molecule() {
+
+//retreives the values for substitution points from the radio buttons. Assigns a general sub_point based on the specific one
+
+	var molecule_choice = document.getElementsByName("molecule_choice");
+
+	for (i = 0; i < molecule_choice.length; i++) {
+                if (molecule_choice[i].checked){
+                    var which_molecule = molecule_choice[i].value;}}
+	
+	return which_molecule;
+}
+
+
+function read_csv(){
+
+//gets file name from input and tries to open it. Throws an error if it cannot be opened ==================================
+
+	var file_holder = document.getElementById("choose_file");
+	var reader = new FileReader();
+
+	var [file] = file_holder.files;
+
+	if (file){
+		console.log("type:",file.type)
+		reader.readAsText(file);
+
+		reader.addEventListener("load", event => {console.log("File read!");
+			var content = reader.result;
+			parse_csv(content);});
+
+		reader.addEventListener("error", event => {console.log("Error reading file!");});
+	} else {
+		alert("please select a file");}
+}
+
+function parse_csv(file_content){
+	
+//accepts a file and parses it as a CSV: splits it into rows, the takes the top row at column titles ======================
+// reads into a 2-D array called dataframe and a separate array for column titles
+
+	var rows = file_content.split(/\r?\n/);
+	
+	for (i=0; i < rows.length; i++) {
+		match = rows[i].search(/nm,Abs/);
+		if (match != -1) {
+			console.log(match);
+			var start_line = i;};
+	};
+	
+	number_points = rows.length - start_line;
+	loop_counter = rows.length;
+	column_titles = rows[start_line].split(",");
+	number_columns = column_titles.length
+
+	for (i = 0; i < loop_counter; i++) {
+		if (rows[loop_counter-i] == undefined || rows[loop_counter-i] == "") {
+			console.log("undefind row");
+			number_points -= 1;
+		}
+	}
+
+	var dataframe = new Array(number_points);
+	let j = 0
+	for (i=start_line+1; i < start_line+number_points+1; i++){
+		console.log(rows[i]);
+		dataframe[j] = Array.from(rows[i].split(","));
+		j += 1;}
+
+//creates as many columns as needed in the "table section" and displays the data in each column ===========================
+
+	var output_div2 = document.getElementById("table_section");
+	var grid_columns = new String("")
+	var grid_areas = new String("")
+	var col_html = new String("")
+	var col_width = Math.floor(100/number_columns);
+
+	for (i=0; i < number_columns; i++){
+		grid_columns += col_width+"% ";
+		grid_areas += "col"+i;
+		col_html += "<div class='cols' id='col"+i+"'><\/div> ";}
+
+	output_div2.style.display = "grid";
+	output_div2.style.gridTemplateColumns = grid_columns;
+	output_div2.style.gridTemplateRows = "auto";
+	output_div2.style.gridTemplateAreas = grid_areas;
+	
+	output_div2.innerHTML = col_html;
+
+	for (i=0; i < number_columns; i++){
+		var col_name = "col"+i;
+		col = document.getElementById(col_name);
+		col.innerHTML = column_titles[i]+"<hr style='margin: 0;'>";
+		for (j = 0; j < number_points; j++){
+			if (column_titles[i] == "SMILES"){
+				smiles_array[j] = dataframe[j][i];}
+			var row_text = "<br>"+dataframe[j][i];
+			col.insertAdjacentHTML("beforeend",row_text);};}
+
+	var alt_text = new String(`<hr><div>Your CSV has more than ${max_columns} columns, so the data will not be displayed. Columns are: `);
+	if (number_columns > max_columns){
+		for (i = 0; i < number_columns; i++){
+			alt_text += ` ${column_titles[i]}`;}
+		 alt_text += `. <div><br><hr>`;
+		output_div2.insertAdjacentHTML("beforeBegin",alt_text);};
+	
+	regress();
+}
+
+
+function regress() {
+
+//Below: get all of the x and y values for name and put in arrays. throws an error if datapoints are NaN. =================  
+
+	let chartStatus = Chart.getChart("plot_canvas"); // <canvas> id
+		if (chartStatus != undefined) {
+			chartStatus.destroy();
+		}
+
+	let combined_array = new Array();
+
+	x_prop_name = "nm";
+
+	y_prop_name = "Abs";
+	
+	var x_col_name = "col"+0;
+	var x_col_to_use = document.getElementById(x_col_name);
+
+	var y_col_name = "col"+1;
+	var y_col_to_use = document.getElementById(y_col_name);
+
+	var x_content = x_col_to_use.innerHTML;
+	var y_content = y_col_to_use.innerHTML;
+
+	var x_arr = x_content.split("<br>");
+	var y_arr = y_content.split("<br>");
+
+	x_arr.shift();
+	y_arr.shift();
+	x_arr.forEach(function(value,i) {x_arr[i] = Number(value);});
+	y_arr.forEach(function(value,i) {y_arr[i] = Number(value);});
+
+	if (x_arr.length == y_arr.length){
+		no_points = x_arr.length;}
+	else{
+		alert("array dimension mismatch!");}
+	
+	//get max
+	let high_abs = Math.max(...y_arr);
+	let lm_index = y_arr.indexOf(high_abs);
+	let lambda_max = x_arr[lm_index];
+	
+	x_arr.forEach(function(xval,index) {
+		let temp_object = {x:xval, y:y_arr[index]};
+		combined_array.push(temp_object);})
+
+//make the chart ==================================================================================================
+
+	document.getElementById("flex_div2").style.display = "Flex";
+	let molecule_for_chart = get_molecule();
+
+	let spec_chart = new Chart(document.getElementById("plot_canvas"),{
+		type: "scatter",
+		data: {
+			datasets: [
+			{	label: "A",
+				showLine: true,
+				pointRadius: 4, PointBackgroundColor: "#0000ff",
+				data: combined_array},
+				]},
+		options: {
+			legend: {display: true},
+			plugins: {
+			title: {
+                display: true,
+                text: `Absorbance for ${molecule_for_chart}`},
+            subtitle: {
+                display: true,
+                text: `Lambda max: ${lambda_max}`},
+			legend: {align: 'center',
+                     display: true,
+                     position: 'right'}	},
+			scales: {
+				x: {type: "linear",
+					title: {
+					display: true,
+					text: "wavelength (nm)"}},
+				y: {type: "linear",
+					title: {
+					display: true,
+					text: "Absorbance"}}
+			}}
+	});
+	
+	document.getElementById("plot_canvas").scrollIntoView({ behavior: "smooth", block: "start", inline: "nearest" });
+	
+}	
+</script>
+
+</html>

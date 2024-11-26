@@ -3,7 +3,7 @@
 
 <head>
 	<meta charset="utf-8">
-	<title>Data Analysis for the Benzene/Caffeine practical.</title>
+	<title>Data Analysis for the Benzoic Acid/Caffeine practical.</title>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/3.2.1/math.js"></script>
 	<script type="module" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>	
 	<style>
@@ -43,11 +43,13 @@
 				"system_solver system_solver"
 				"plot_box_ben230 plot_box_caf230"
 				"plot_box_ben270 plot_box_caf270";}
+				
 		#main_input {
 			grid-area: main_input;
 			vertical-align: middle;
 			outline: 1px solid #D3D3D3;
-			text-align: center;}		
+			text-align: center;}	
+			
 		#points_storage {
 			display: grid;
 			outline: 1px solid #D3D3D3;
@@ -78,6 +80,7 @@
 			grid-area: equations_1;
 			text-align: left;
 			outline: 1px solid #D3D3D3;}
+			
 		#system_solver{
 			display: grid;
 			display: block;
@@ -132,6 +135,7 @@
 	
 	<div id="menu_holder">
 		<a class="menu_box" href="Chem_webapps_frontpage.html" style="color: #00008B;">Back to Chemistry Web Apps</a>
+		<a class="menu_box" href="plot_spectrum.html" style="color: #00008B;">Plot spectrum for molecule. </a>
 	</div>
 	<br>
 
@@ -190,7 +194,7 @@
 
 <script>
 
-var name_hash = {"ben230" : "Benzene 230 nm", "ben270" : "Benzene 270 nm",
+var name_hash = {"ben230" : "Benzoic Acid 230 nm", "ben270" : "Benzoic Acid 270 nm",
 				"caf230" : "Caffeine 230 nm", "caf270" : "Caffeine 270 nm"}
 
 function add_points(name) {

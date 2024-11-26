@@ -9,7 +9,7 @@
 			color: White;
 			background-color: #26292B;
 			min-height: 100vh;
-			width: 100%;}
+			width: 95%;}
 		
 		#main_title {
 			border-radius: 25px;
@@ -20,10 +20,38 @@
 			background-color: #5F7ADB;
 			width: 90%;}
 		
-		#main {
+		#main_flex {
 			width: 100%
 			background-color: #5F7ADB;
-			width: 100%;}
+			width: 100%;
+			display: flex;
+			flex-direction: row;
+			flex-wrap: wrap;
+			align-content: space-around;
+			justify-content: space-evenly;}
+		
+		.flex_boxes {
+			width: 40%;
+			background-color: #5F7ADB;
+			font-size: 20px;
+			border-radius: 25px;
+			border: 5px solid #5F7ADB;
+			text-align: center;
+			padding: 2%;
+			margin: 2%;}
+		
+		.flex_boxes:hover {
+			transition: 1s ease;
+			transform: scale(1.05);}
+		
+		.flex_titles {
+			width: 80%;
+			font-size: 20px;
+			border-radius: 25px;
+			border: 5px solid #DFFF00;
+			text-align: center;
+			padding: 2%;
+			margin: 2%;}
 		
 		#menu_holder{
 			display: flex;
@@ -34,16 +62,16 @@
 			margin: 0% 2% 0% 2%;
 			text-align: center;
 			background-color: #DFFF00;
-			width: 30%;}
+			width: 22%;}
 		
 		a:hover {
 			color: #33ff96;
 			transition: 2s ease;
 			transform: scale(1.15);}
 		a:link {
-			color: #33ff96;}	
+			color: White;}	
 		a:visited {
-			color: #ffdd33;}
+			color: #DFFF00;}
 
 		li {
  			 margin: 10px 0;}
@@ -59,27 +87,85 @@
 	<div id="menu_holder">
 		<a class="menu_box" href="dr_cafiero.html" style="color: #00008B;">Dr. Cafiero</a>
 		<a class="menu_box" href="members.html" style="color: #00008B;">Group members</a>
+		<a class="menu_box" href="Chem_webapps_frontpage.html" style="color: #00008B;">Chemistry Web Apps</a>
 		<a class="menu_box" href="index.html" style="color: #00008B;">Back to Home</a>
 	</div>
 	<br>
 
-	<section id = "main" style = 'width: 800px'>
-		<div><p style = "text-align: left">
-		 	<ol> <h1>Below find links to various web-apps for chemistry written in Javascript.</h1>
-				<li><a href="NeuralNetwork_in_browser.html">Build your own neural network to fit <em>ab initio</em> potential energy surfaces.</a></li>
-				<li><a href="rovib.html">Interactive energy level diagram and spectrum for studying rovibrational energy level
-				transitions for diatomic molecules.</a></li>
-				<li><a href="Surf_interface.html">Calculation and visualization of the contact angle for various liquids on various 
-				surfaces. Estimates wettability of the surface by the liquid.</a></li>
-				<li><a href="ADME_calculator.html">Calculation of various ADME properties for a selection of molecules. The user may also 
-				draw a molecule for analysis.</a></li>
-				<li><a href="CSV_mol_props.html">Load a CSV files with SMILES and other property data for a set of molecules. You can then choose a molecule 
-				based on the values of the properties and draw a picture of the molecule.</a></li>
-				<li><a href="CSV_plot.html">Load a CSV files with any sets of data. Choose any two series to plot and find the best-fit line.</a></li>
-				<li><a href="Benzoic_Caffeine_prac.html">Perform all analysis for the Part 2 Benzoic Acid/Caffeine practical.</a></li>
-				<li><a href="regression.html">Simple linear regression tool with R<sup>2</sup> and plot.</a></li>
-			</ol>	
+	<section id = "main_flex">
+		<h1>Below find links to various web-apps for chemistry written in Javascript.</h1>
+		<span>For comments/feedback/corrections o any of these apps, please raise an issue on 
+		<a href="https://github.com/MauricioCafiero/Chemistry-WebApps-in-Javascript">this github repository.</a></span>
+		<div class="flex_titles">
+			Neural-network and AI-based Apps
 		</div>
+		<div class="flex_boxes">
+			<a href="NeuralNetwork_in_browser.html">Build your own neural network to fit an <em>ab initio</em> potential energy curve.</a>
+		</div>
+		<div class="flex_boxes">
+			<a href="NeuralNetwork_in_browser_dihedral.html">Build a more advanced neural network with more options to fit an <em>ab initio</em> 
+				potential energy curve for a dihedral angle.</a>
+		</div>
+		<div class="flex_boxes">
+			<a href="NeuralNetwork_for_Datasets.html">Build a neural network to predict a drug's potency (IC50) based on several molecular properties.</a>
+		</div>
+		<div class="flex_boxes">
+			<a href="is_it_a_beaker.html">Use a Neural Network to see if the object in your image is a beaker!</a>
+		</div>
+		<div class="flex_boxes">
+			<a href="petface.html">Use a Neural Network to see if your pet has a face!</a>
+		</div>
+		<div class="flex_titles">
+				Drug-Design-related Apps
+		</div>
+		<div class="flex_boxes">
+			<a href="ADME_calculator.html">Calculation of various ADME properties for a selection of molecules. The user may also 
+				draw a molecule for analysis.</a>
+		</div>
+		<div class="flex_boxes">
+			<a href="Substitutions.html">Create libraries of novel compounds by substitution starting from a CSV file of SMILES
+				strings.</a>
+		</div>
+		<div class="flex_boxes">
+			<a href="Substitutions_with_names.html">Create libraries of novel compounds by substitution starting from a CSV file of SMILES
+				strings; also fetches IUPAC names from Pubchem.</a>
+		</div>
+		<div class="flex_boxes">
+			<a href="CSV_mol_props.html">Load a CSV files with SMILES and other property data for a set of molecules. You can then choose a molecule 
+				based on the values of the properties and draw a picture of the molecule.</a>
+		</div>
+		<div class="flex_boxes">
+			<a href="CSV_plot.html">Load a CSV files with any sets of data. Choose any two series to plot and find the best-fit line.</a>
+		</div>
+		<div class="flex_titles">
+				Physical Chemistry Apps
+		</div>
+		<div class="flex_boxes">
+			<a href="thermocalc.html">Interactive thermodynamics property calculator: &Delta;U,, q, w, &Delta;H, and &Delta;S for
+			isobaric, isochoric, adiabatic and isothermal processes.</a>
+		</div>
+		<div class="flex_boxes">
+			<a href="pib_calculator.html">Interactive one-dimensional particle-in-a-box energy level, transition and wavefunction calculator.</a>
+		</div>
+		<div class="flex_boxes">
+			<a href="rovib.html">Interactive energy level diagram and spectrum for studying rovibrational energy level
+				transitions for diatomic molecules.</a>
+		</div>
+		<div class="flex_boxes">
+			<a href="Surf_interface.html">Calculation and visualization of the contact angle for various liquids on various 
+				surfaces. Estimates wettability of the surface by the liquid.</a>
+		</div>
+			<div class="flex_titles">
+				Chemistry Practical Apps
+		</div>
+		<div class="flex_boxes">
+			<a href="Benzoic_Caffeine_prac.html">Perform all analysis for the Part 2 Benzoic Acid/Caffeine practical.</a>
+		</div>
+		</div>
+		<div class="flex_boxes">
+			<a href="regression.html">Simple linear regression tool with R<sup>2</sup> and plot.</a>
+		</div>
+		
 	</section>
 	<p>This is the work of Dr. Mauricio Cafiero and may be used widely though atribution is appreciated.</p>
 
