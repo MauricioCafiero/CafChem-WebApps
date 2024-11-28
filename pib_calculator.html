@@ -55,7 +55,7 @@
 			width: 22%;}
 		
 		.prompts {
-			width: 22%;
+			width: 18%;
 			margin: 3% 0% 3% 0%;
 			border: 5px solid #5F7ADB;
 			text-align: center;
@@ -66,7 +66,7 @@
 			height: 1rem;}
 		
 		.responses {
-			width: 22%;
+			width: 18%;
 			margin: 3% 0% 3% 0%;
 			border: 5px solid #DFFF00;
 			text-align: center;
@@ -318,6 +318,8 @@ class Convertor extends React.Component {
 		this.onElecChange = this.onElecChange.bind(this);
 		this.onNinitChange = this.onNinitChange.bind(this);
 		this.onNfinChange = this.onNfinChange.bind(this);
+		this.onPinitChange = this.onPinitChange.bind(this);
+		this.onPfinChange = this.onPfinChange.bind(this);
 	}
 	
 	onMassChange(event) {
@@ -350,6 +352,18 @@ class Convertor extends React.Component {
 		});
 	}
 	
+	onPinitChange(event) {
+		this.setState({
+			pinit: event.target.value,
+		});
+	}
+	
+	onPfinChange(event) {
+		this.setState({
+			pfin: event.target.value,
+		});
+	}
+	
 	shouldComponentUpdate(newProps,newState) {
 		let all_updated_props = Object.keys(newState);
 		let temp_obj = new Object();
@@ -366,6 +380,8 @@ class Convertor extends React.Component {
 				}
 		};
 		//console.log(temp_obj);
+		//if (temp_obj['pinit'] > temp_obj['pfin'] || temp_obj['pinit'] < 0 || temp_obj['pfin'] > temp_obj['b_length']) {
+		//	alert("Invalid limits for probability calculation! Result will not be accurate.");};
 		draw_plot(temp_obj,true);
 		draw_canvas(temp_obj);
 		return true;
@@ -382,8 +398,20 @@ class Convertor extends React.Component {
 		const elec = 'elec' in this.state ? this.state.elec : this.props.elec;
 		const ninit = 'ninit' in this.state ? this.state.ninit : this.props.ninit;
 		const nfin = 'nfin' in this.state ? this.state.nfin : this.props.nfin;
+		const pinit = 'pinit' in this.state ? this.state.pinit : this.props.pinit;
+		const pfin = 'pfin' in this.state ? this.state.pfin : this.props.pfin;
 		let gamma = Math.pow((h/(b_length*Math.pow(10,-10))),2)/(8*mass);
 		gamma = gamma.toPrecision(4);
+		
+		if (pinit > pfin || pinit < 0 || pfin > b_length) {
+			alert("Invalid limits for probability calculation! Result will not be accurate.");}
+		
+		function prob(length, elec, a,b) {
+			let homo = Math.ceil(elec/2);
+			let llength = b_length;
+			let proba = (2/llength)*(((b/2)-((llength/4/homo/Math.PI)*Math.sin(2*homo*Math.PI*b/llength)))-((a/2)-((llength/4/homo/Math.PI)*Math.sin(2*homo*Math.PI*a/llength))));
+			return proba;
+		}
 		
 		return (
 			<div id="flex_box_1">
@@ -396,11 +424,18 @@ class Convertor extends React.Component {
 				<div className="prompts"> Enter the number of electrons below: <br/>
 					<input type="number" className="values" value={elec} onChange={event => this.onElecChange(event)} />
 				</div>
-				<div className="prompts"> Enter an <strong>initial and final n </strong>value for a transition below: <br/>
+				<div className="prompts"> Enter an <strong>initial and final n </strong>value for a general transition below: <br/>
 					<label>n<sub>i</sub>  </label>
 					<input type="number" className="values" value={ninit} onChange={event => this.onNinitChange(event)} /> <br/>
 					<label>n<sub>f</sub>  </label>
 					<input type="number" className="values" value={nfin} onChange={event => this.onNfinChange(event)} />
+				</div>
+				<div className="prompts"> Enter <strong>initial and final positions </strong> to calculate a probability of 
+				finding the particle within that space below (Angstroms): <br/>
+					<label>n<sub>i</sub>  </label>
+					<input type="number" className="values" value={pinit} onChange={event => this.onPinitChange(event)} /> <br/>
+					<label>n<sub>f</sub>  </label>
+					<input type="number" className="values" value={pfin} onChange={event => this.onPfinChange(event)} />
 				</div>
 				<br/>
 				<div className="responses">
@@ -409,8 +444,8 @@ class Convertor extends React.Component {
 					The highest occupied orbital is <em>n={Math.ceil(elec/2)}</em>
 				</div>
 				<div className="responses">
-					The highest occupied orbital has an energy of: {(Math.pow(Math.ceil(elec/2),2)*gamma).toPrecision(4)} J.<br/><br/>
-					The lowest unoccupied orbital has an energy of: {(Math.pow(Math.ceil((elec/2)+1),2)*gamma).toPrecision(4)} J.<br/>
+					The highest occupied orbital has an energy of: {(Math.pow(Math.ceil(elec/2),2)*gamma).toPrecision(3)} J.<br/><br/>
+					The lowest unoccupied orbital has an energy of: {(Math.pow(Math.ceil((elec/2)+1),2)*gamma).toPrecision(3)} J.<br/>
 				</div>
 				<div className="responses">
 					The HOMO/LUMO gap energy is: {((2*Math.ceil(elec/2)+1)*gamma).toPrecision(4)} J.<br/><br/>
@@ -419,6 +454,9 @@ class Convertor extends React.Component {
 				<div className="responses">
 					The transition energy between levels {ninit} and {nfin} is: {(Math.abs((Math.pow(ninit,2)-Math.pow(nfin,2))*gamma)).toPrecision(4)} J.<br/><br/>
 					The transition wavelength is: {(Math.pow(10,17)*(h*3/Math.abs((Math.pow(ninit,2)-Math.pow(nfin,2))*gamma))).toFixed(2)} nm. <br/>
+				</div>
+				<div className="responses">
+					The probability of finding the particle between {pinit} and {pfin} in the HOMO is: {prob(b_length,elec,pinit,pfin).toPrecision(4)}<br/>
 				</div>
 			</div>
 		);
@@ -432,6 +470,8 @@ Convertor.defaultProps = {
 	elec: 4,
 	ninit: 2,
 	nfin: 3,
+	pinit: 0.0,
+	pfin: 5.0,
 };
 
 ReactDOM.render(
