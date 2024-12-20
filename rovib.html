@@ -90,24 +90,17 @@
 
 		hr {color: white;}
 
-		#slider_div { 
-            		display: flex; 
-            		flex-direction: row;}
-		#slider_label {
-			order: 1;}
-		#peak_space_inp {
-			order: 2;}
-		#set_peak_space_b {
-			order: 3;}
-
 		#fakelink:hover {
-			color: cyan;}
+			color: cyan;
+			cursor: grab;}
 		#sample_values {	
-			display: none;}
+			display: none;
+			cursor: grab;}
 		#sample_values:hover {	
 			color:cyan;}
 		#hide_sample_point{	
-			display: none;}
+			display: none;
+			cursor: grab;}
 		#hide_sample_point:hover {	
 			color: cyan;}
 			
@@ -216,12 +209,7 @@
 			</div>
 		</div>
 		<div id = "spectrum">
-			<canvas id="spectrum_canvas" height=450px width=750px style="background-color: white"> </canvas>
-			<div id="slider_div">
-				<label id="slider_label" for="peak_space_inp">Slide to adjust peak spacing.</label>
-  				<input type="range" id="peak_space_inp" name="peak_space_inp" min="1" max="15" value="3" step="1" />
-				<button id="set_peak_space_b" onclick="set_peak_space()" style="width: 250px"> Set new peak spacing. </button>
-			</div>
+			<canvas id="spectrum_canvas" height=450px width=750px style="background-color: white"> </canvas
 		</div>
 	</section>
 	<p style = 'width: 800px'>This is the work of Dr. Mauricio Cafiero and may be used widely though attribution is appreciated.</p>
@@ -375,6 +363,16 @@ function draw_diagram() {
 
 	sc.fillText("v (cm^-1) -->",axis_x1+5, axis_y1+15);
 	sc.fillText("v="+freq,spec_center_x, axis_y1+15);
+	
+	while(peak_space > spec_center_x/(10*B)){
+		peak_space = 0.9*peak_space;
+		console.log("reducing peak spacing!");
+	};
+	
+	while(peak_space < 0.75*spec_center_x/(10*B)){
+		peak_space = 1.1*peak_space;
+		console.log("increasing peak spacing!");
+	};
 }
 
 
@@ -587,11 +585,6 @@ function calc_r(){
 	r = Math.round(r*100)/100;
 
 	document.getElementById('bond_length').value = r
-}
-
-function set_peak_space() {
-	var temp_ps = document.getElementById('peak_space_inp').valueAsNumber;
-	peak_space = temp_ps;
 }
 
 </script>
