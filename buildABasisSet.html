@@ -256,6 +256,26 @@ document.getElementById("calc_setup").addEventListener("click", () => {
 		holder.insertAdjacentHTML("beforeend",`Ground State energy = ${gs_energy_global} <br>`);
 		eigenvector = [...loc_eigenvector];
 		document.getElementById("start_var").style.display = "Block";
+		
+		let coeff_table = document.getElementById("coefficients");
+		coeff_table.innerHTML = "current coefficients: ";
+		coeff_table.insertAdjacentHTML("beforeend","<br> =================================== <br>");
+		vec_count = 0;
+		for (let bi = 0; bi < m; bi++){
+				for (let i = 0; i < n; i++) {
+					for (let j = i; j < n; j++) {
+						if (i == 0 && j == 0) {
+							let row_text = `<br>function ${bi} with c<sup>2</sup> = ${(eigenvector[bi]*eigenvector[bi]).toPrecision(4)} <br>  ${dataframe[vec_count]}`;
+							coeff_table.insertAdjacentHTML("beforeend",row_text);
+						} else {
+							let row_text = `<br>                 ${dataframe[vec_count]}`;
+							coeff_table.insertAdjacentHTML("beforeend",row_text);
+						}
+						vec_count += 1
+					}
+				}
+			};
+		
 	} else {
 		alert("Please upload or generate a basis set first!");
 	}
@@ -517,9 +537,21 @@ function stochasticVariation() {
 			holder.insertAdjacentHTML("beforeend",`Ground State energy at step ${iters} = ${gs_energy_global} <br>`);
 			coeff_table.innerHTML = "current coefficients: ";
 			coeff_table.insertAdjacentHTML("beforeend","<br> =================================== <br>");
-			for (let j = 0; j < size_bs; j++){
-				let row_text = "<br>"+dataframe[j];
-				coeff_table.insertAdjacentHTML("beforeend",row_text);};
+			vec_count = 0;
+			for (let bi = 0; bi < m; bi++){
+				for (let i = 0; i < n; i++) {
+					for (let j = i; j < n; j++) {
+						if (i == 0 && j == 0) {
+							let row_text = `<br>function ${bi} with c<sup>2</sup> = ${(eigenvector[bi]*eigenvector[bi]).toPrecision(4)} <br>  ${dataframe[vec_count]}`;
+							coeff_table.insertAdjacentHTML("beforeend",row_text);
+						} else {
+							let row_text = `<br>                 ${dataframe[vec_count]}`;
+							coeff_table.insertAdjacentHTML("beforeend",row_text);
+						}
+						vec_count += 1
+					}
+				}
+			};
 		}
 	}
 	holder.insertAdjacentHTML("beforeend",`Optimization done. <br>`);
