@@ -1,0 +1,599 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<title>Build and optimize an orbital or geminal basis set.</title>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/3.2.1/math.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
+	<!--uses the normal distribution function from 
+	https://mika-s.github.io/javascript/random/normal-distributed/2019/05/15/generating-normally-distributed-random-numbers-in-javascript.html -->
+	<style>
+		body {
+			color: White;
+			background-color: #26292B;
+			min-height: 100vh;
+			width: 95%;}	
+		
+		#main_title {
+			border-radius: 25px;
+			display: flex;
+			flex-direction: row;
+			text-align: left;
+			margin: 0% 5% 2% 5%;
+			background-color: #5F7ADB;
+			width: 90%;}
+		
+		#menu_holder{
+			display: flex;
+			flex-direction: row;}
+			
+		.menu_box {
+			border-radius: 25px;
+			margin: 0% 2% 0% 2%;
+			text-align: center;
+			background-color: #DFFF00;
+			width: 30%;}		
+		
+		#intro {
+			width: 100%;}
+
+		#main_flex {
+			display: flex;
+			flex-direction: row;
+			flex-wrap: wrap;
+			width: 100%;
+			align-content: space-around;
+			justify-content: space-evenly;}
+
+		.flex_divs {
+			width: 40%;
+			text-align: left;
+			display: flex;
+			flex-direction: column;
+			border-radius: 25px; 
+			border: 5px solid #DFFF00;
+			margin: 2% 2% 2% 2%;
+			padding: 2%;
+			text-align: center; }
+			
+		.big_flex_divs {
+			width: 80%;
+			text-align: left;
+			display: flex;
+			flex-direction: row;
+			border-radius: 25px; 
+			border: 5px solid #FF00FF;
+			margin: 2% 2% 2% 2%;
+			padding: 2%;
+			text-align: center;
+			align-content: space-around;
+			justify-content: space-evenly;			
+		}
+			
+		#table_section{
+			min-height: 10px;
+		}
+		
+		#coefficients {
+			display: none;
+		}
+		
+		#start_var, #show_plot {
+			display: none;
+			cursor: grab;
+		}
+		
+		#gen_random, #calc_setup {
+			cursor: grab;
+		}
+
+		#best_value {
+			margin: auto;
+			display: none;}
+			
+		input::-webkit-outer-spin-button,
+		input::-webkit-inner-spin-button {
+  		-webkit-appearance: none;
+  		margin: 0;}
+
+		input[type=number] {
+			text-align: center; 
+			-moz-appearance: textfield;}
+		
+		button {text-align: center;
+			width: 200px;}
+
+		hr {color: white;}
+	</style>
+</head>
+
+<body>
+	<div id="main_title"> <img  style="padding: 2% 1% 1% 5%;" src="images/comp_chem_2_small.jpg" alt="Computer"> 
+		<h1 style="padding: 50px;">Build an orbital or geminal basis set for 1 or 2 electron atoms and perform a stochastic optimization.</h1>
+	</div>
+	
+	<div id="menu_holder">
+		<a class="menu_box" href="Chem_webapps_frontpage.html" style="color: #00008B;">Back to Chemistry Web Apps</a>
+	</div>
+	<br>
+
+	<div id="intro">
+		<details open>
+		<summary>How to use this webapp/hide this explanation.</summary>
+		<ul>
+			<li>This app allows you to upload a basis set or generate a new, random basis set for 1 and 2 electron atoms.</li>
+			<li>For 1 electron, we use a gaussian orbital basis set, which requires 1 &alpha; coefficient per basis function: &nbsp;
+			&psi; = &Sigma; c<sub>i</sub>e<sup>-&alpha;<sub>i</sub>r<sup>2</sup></sup></li>
+			<li>For 2 electrons, we use an explicitly correlated gaussian <em>geminal</em> basis set, which requires 3 coefficients per 
+			basis function: an &alpha; for each electron and a &beta; coefficient which <em> correlates</em> the two electrons: 
+			&psi; = &Yscr; &Sigma; c<sub>i</sub> &nbsp; e<sup>-&alpha;<sub>1,i</sub>r<sub>1</sub><sup>2</sup> &nbsp;
+			-&alpha;<sub>2,i</sub>r<sub>2</sub><sup>2</sup> &nbsp; -&beta;<sub>12,i</sub>r<sub>12</sub><sup>2</sup></sup></li>
+			<li>&Yscr; is the young operator, which maintains permutational symmetry (Pauli Principle adherence).</li>
+			<li>When uploading a basis set text file, the first line should have the word "coefficients" and then be followed by: an &alpha; 
+			for each basis function for 1 electron (each on a new line), or by a set of &alpha;, &beta;, &alpha; for each basis function for 2 electrons
+			(each on a new line). </li>
+			<li>Once a basis set is uploaded or generated, you can calculate the energy via the Rayleigh quotient: 
+			<E> = < &psi;| H | &psi; > / < &psi;| &psi; > </li>
+			<li>You may also perform a <em>stochastic optimization</em> on the basis set, which uses random numbers to modify the basis set
+			until a lower energy value if found. This works due to the <em>variational principle</em>.</li>
+			<li>Target values for H and He are: -0.5000 au and -2.9033 au.
+			<li> NOTE: if your randomly generated basis set contains &alpha; values that are too similar, you develop linear dependence and break the variational 
+			principle. </li>
+			
+		</ul>
+		</details>
+	</div>
+	<hr>
+	<section id = "main_flex">
+	
+		<div class = "big_flex_divs">
+			<div>Number of electrons:
+			</div>
+			<div>
+				<input type="radio" id="1" name="ne" value="1" checked>
+				<label for="1">1 </label>
+			</div>
+			<div>
+				<input type="radio" id="2" name="ne" value="2">
+				<label for="2">2 </label>
+			</div>
+			
+			<div>Nuclear charge:
+			</div>
+			<div>
+				<input type="radio" id="1" name="zed" value="1" checked>
+				<label for="1">1 </label>
+			</div>
+			<div>
+				<input type="radio" id="2" name="zed" value="2">
+				<label for="2">2 </label>
+			</div>
+			<div>
+				<input type="radio" id="3" name="zed" value="3">
+				<label for="3">3 </label>
+			</div>
+			<div>
+				<input type="radio" id="4" name="zed" value="4">
+				<label for="4">4 </label>
+			</div>
+			
+		</div>
+	
+		<div class = "flex_divs">
+			<div style="margin: auto;">
+				<label for="choose_file"> <strong>Select a text file with initial &alpha; (and &beta;) coefficients to process.</strong></label>
+				<br>
+				<input type="file" id="choose_file" accept=".txt">
+			</div>
+			<br>
+			
+		</div>
+		
+		<div class = "flex_divs">
+			<div id="gen_random"> 
+				<strong>Press here to generate a random initial basis set.</strong>
+			</div>
+			<br>
+			<span>
+			<label for="mval"> number of basis functions to generate: </label>
+			<input type="number" id = "mval" name="mval" style="width: 30px" value = "5"/>
+			</span>
+		</div>
+		
+		<div class = "big_flex_divs" id = "best_value">
+		</div>
+		
+		<div class = "flex_divs" id="table_section">
+		<div id="coefficients">coefficients: </div>
+		</div>
+		
+		<div class = "flex_divs">
+			<span id = "result_of_calc"></span>
+			<div id="calc_setup"> 
+				<strong>Press here to calculate the ground state energy with the current basis set.</strong>
+			</div>
+			<br>
+			<div id="start_var"> 
+				<strong>Press here to perform a stochastic optimization of the basis set.</strong>
+			</div>
+			<div><hr></div>
+			<div id="energy_results">
+			
+			</div>
+		</div>
+	</section>
+	<p>This is the work of Dr. Mauricio Cafiero and may be used widely though attribution is appreciated.</p>
+
+</body>
+
+<script>
+
+// define global variables ================================================================================================
+
+var number_columns, number_points, m, n, size_bf, size_bs, Z; 
+var dataframe = new Array;
+let eigenvector = new Array;
+let loc_eigenvector = new Array;
+var gs_energy_global;
+var st = new Array(1,2);
+
+// all event listeners for actions: opengin a file, generating a random basis set, calculating the energy, and optimizing.
+
+document.getElementById("choose_file").addEventListener("change", () => {console.log("File read!");	
+	read_csv();});
+				
+document.getElementById("gen_random").addEventListener("click", () => {	
+	m = document.getElementById("mval").valueAsNumber;
+	document.getElementById("start_var").style.display = "None";
+	generateRandom();});
+				
+document.getElementById("calc_setup").addEventListener("click", () => {
+	if(m) {
+		gs_energy_global = calcEnergy(dataframe);
+		gs_energy_global = Number.parseFloat(gs_energy_global);
+		let holder = document.getElementById("energy_results");
+		holder.insertAdjacentHTML("beforeend",`Ground State energy = ${gs_energy_global} <br>`);
+		eigenvector = [...loc_eigenvector];
+		document.getElementById("start_var").style.display = "Block";
+	} else {
+		alert("Please upload or generate a basis set first!");
+	}
+	});
+
+document.getElementById("start_var").addEventListener("click", () => {
+	stochasticVariation();});
+
+function get_nZ() {
+
+//retrieves the n and Z values from radio buttons.
+
+	var ne_choice = document.getElementsByName("ne");
+
+	for (i = 0; i < ne_choice.length; i++) {
+                if (ne_choice[i].checked){
+                    n = ne_choice[i].value;}}
+	n = Number.parseInt(n);
+	
+	var z_choice = document.getElementsByName("zed");
+
+	for (i = 0; i < z_choice.length; i++) {
+                if (z_choice[i].checked){
+                    Z = z_choice[i].value;}}
+	Z = Number.parseInt(Z);
+}
+
+function read_csv(){
+
+//gets file name from input and tries to open it. Throws an error if it cannot be opened ==================================
+
+	var file_holder = document.getElementById("choose_file");
+	var reader = new FileReader();
+
+	var [file] = file_holder.files;
+
+	if (file){
+		console.log("type:",file.type)
+		reader.readAsText(file);
+		
+		reader.addEventListener("load", event => {console.log("File read!");
+			var content = reader.result;
+			parse_csv(content);});
+
+		reader.addEventListener("error", event => {console.log("Error reading file!");});
+	} else {
+		alert("please select a file");}
+}
+
+function parse_csv(file_content){
+	
+//accepts a file and parses it, reads the coefficients and puts them into an array called dataframe. 
+
+	dataframe = file_content.split("\n");
+
+	get_nZ();
+	size_bf = n*(n+1)/2;
+	
+	number_points = dataframe.length - 1;
+	number_columns = 1;
+
+	while (dataframe[number_points] == ""){
+		dataframe.length = number_points - 1;
+		number_points = dataframe.length - 1;
+		console.log("deleting blank line at end of CSV!");}
+
+	var coeff_table = document.getElementById("coefficients");
+	coeff_table.style.display = "Block";
+	coeff_table.innerHTML = "current coefficients: ";
+	coeff_table.insertAdjacentHTML("beforeend","<br> =================================== <br>");
+	
+	for (j = 0; j < number_points; j++){
+		var row_text = "<br>"+dataframe[j+1];
+		coeff_table.insertAdjacentHTML("beforeend",row_text);};
+
+	dataframe.shift();
+	dataframe.forEach((df,ind) => {dataframe[ind] = Number.parseFloat(dataframe[ind]);} );
+	
+	if (number_points % size_bf != 0){
+		alert("Input data is not of the correct size for this molecule");
+	}
+	
+// uses the data read in to define the basis set parameters 
+
+	m = number_points/size_bf;
+	size_bs = m*size_bf;
+	
+// Make calculations buttons visible once the file is loaded.
+
+	document.getElementById("best_value").style.display="None";
+	document.getElementById("energy_results").innerHTML="";
+}
+
+function calcEnergy(loc_dataframe) {
+	
+// define initial arrays filled with zeroes, zero-out the eigenvector array
+	
+	loc_eigenvector.length = 0;
+	
+	let H = new Array(m);
+	let S = new Array(m);
+	
+	for (let i=0; i<m; i++){
+		H[i] = new Array(m).fill(0.0);
+		S[i] = new Array(m).fill(0.0);
+	}
+	
+// one electron case
+
+	if ( n == 1) {
+		for (let i=0; i<m; i++){
+			for(let j=i; j<m; j++){
+				let tempfloat = (2.0*Math.PI)/(loc_dataframe[i]+loc_dataframe[j])
+				S[i][j] = Math.pow(tempfloat,1.5);
+				H[i][j] = Math.pow(tempfloat,1.5)*(1.5*loc_dataframe[i]*loc_dataframe[j]/(loc_dataframe[i]+loc_dataframe[j]))-((Z*4.0*Math.PI)/(loc_dataframe[i]+loc_dataframe[j]));
+				if (j != i){
+					H[j][i] = H[i][j];
+					S[j][i] = S[i][j];
+				}
+			}
+		}
+	} else {								// two electron case below.
+		let J11 = new Array([1,0],[0,0]);
+		let J22 = new Array([0,0],[0,1]);
+		let Jij = new Array([1,-1],[-1,1]);
+		let sm2 = new Array([0,1],[1,0]);
+		let symmult = new Array(1.0,1.0);
+		
+		let lk = new Array(n);
+		let ll = new Array(n);
+		for (let i=0; i<n; i++){
+			ll[i] = new Array(n).fill(0.0);
+			lk[i] = new Array(n).fill(0.0);
+		}
+		
+		for (let sti=0; sti < st[n-1]; sti++){				// loop over symmetry terms and calculate H and S matrices
+			for (let i = 0; i < m; i++){
+				for (let j = i;  j < m; j++){
+					let k = i*size_bf;
+					let l = j*size_bf;
+					let bi = 0;
+					for (let jj=0; jj < n; jj++){
+                        for (let ii=jj; ii < n; ii++){
+                            lk[ii][jj] = loc_dataframe[k+bi];
+                            ll[ii][jj] = loc_dataframe[l+bi];
+                            bi += 1;	
+                        }
+                    }
+					
+					let Al = math.multiply(ll,math.transpose(ll));
+					let Ak = math.multiply(lk,math.transpose(lk));
+					if (sti == 1) {							// apply symmetry tranformation to the ket.
+						let temp = math.multiply(Al,sm2);
+						Al = math.multiply(sm2,temp);
+					}
+					let Akl = math.add(Ak,Al);
+					let Akli = math.inv(Akl);
+					
+					let detAk = math.det(Ak);
+					let detAl = math.det(Al);
+					let detAkl = math.det(Akl);
+					detAk = Math.sqrt(detAk);
+					detAl = Math.sqrt(detAl);
+					
+					let OV = 8*Math.pow((detAk*detAl/detAkl),1.5)
+					S[i][j] += symmult[sti]*OV
+					
+					temp = math.multiply(Akli,Al);
+					let temp2 = math.multiply(Ak,temp);
+					let T = OV*3.0*math.trace(temp2);
+					temp = math.multiply(Jij,Akli);
+					let ER = OV*2.0/Math.sqrt(Math.PI*math.trace(temp));
+					temp = math.multiply(J11,Akli);
+					let NA = Z*OV*2.0/Math.sqrt(Math.PI*math.trace(temp));
+					temp = math.multiply(J22,Akli);
+					NA += Z*OV*2.0/Math.sqrt(Math.PI*math.trace(temp));
+					H[i][j] += symmult[sti]*(T + ER - NA);
+				}
+			}
+		}
+	}
+	
+	for (let i=0; i<m; i++){
+		for (j = i+1; j < m; j++){
+			H[j][i] = H[i][j];
+			S[j][i] = S[i][j];
+		}
+	}
+
+// solve the Rayleigh quotient ========================================================
+
+	let Si = math.inv(S);
+	let F = math.multiply(Si,H);	
+	
+	try {
+		const result = numeric.eig(F);
+		let energies = Array.from(result.lambda.x);
+		energies.sort((a,b) => {return a-b});
+		let gs_loc = result.lambda.x.indexOf(energies[0]);
+		
+		//this is the eigenvector; use later to plot
+		
+		let sum = 0.0
+		for (let i=0; i < m; i++){
+			loc_eigenvector.push(result.E.x[i][gs_loc]);
+			sum += result.E.x[i][gs_loc]*result.E.x[i][gs_loc];
+		}
+		
+		//console.log(loc_eigenvector);
+		
+		gs_energy = energies[0].toPrecision(6);
+		return gs_energy;							// return the new energy
+	}
+	catch {return gs_energy_global;}				// if the eigen problem doesn't converge, return the previous energy
+		
+}
+
+function stochasticVariation() {
+	
+	let temp_df = new Array;
+	let rn;
+	
+	let coeff_table = document.getElementById("coefficients");
+	
+	let holder = document.getElementById("energy_results");
+	holder.insertAdjacentHTML("beforeend",`Performing Stochastic Optimization: <br>`);
+	holder.insertAdjacentHTML("beforeend",`=================================== <br>`);
+	
+	for (iters = 0; iters < 100; iters++) {				// how many cycles of stochastic optimization to run
+	
+		temp_df = [...dataframe];
+
+// add random numbers to each coefficient ====================================================================
+		
+		let vec_count = 0;
+		for (let bi=0; bi < m; bi++){
+			for (let i = 0; i < n; i++) {
+				for (let j = i; j < n; j++) {
+					rn = math.random(-0.05, 0.05);
+					temp_df[vec_count] += rn;
+					vec_count += 1
+				}
+			}
+		}
+		
+// calculate energy and check if it increased dramtically, signaling linear dependence or other numerical insability.
+
+		let gs_trial = calcEnergy(temp_df);
+		gs_trial = Number.parseFloat(gs_trial);
+		let diff = Math.abs(gs_trial - gs_energy_global);
+		if (diff > 10.0) {
+			holder.insertAdjacentHTML("beforeend",`Bad wave function, please generate or load a new basis set! <br>`);
+			break;
+		}
+		if (gs_trial < gs_energy_global){			// if energy improved, save it and the eignevector; display
+			gs_energy_global = gs_trial;
+			dataframe = [...temp_df];
+			eigenvector = [...loc_eigenvector];
+			holder.insertAdjacentHTML("beforeend",`Ground State energy at step ${iters} = ${gs_energy_global} <br>`);
+			coeff_table.innerHTML = "current coefficients: ";
+			coeff_table.insertAdjacentHTML("beforeend","<br> =================================== <br>");
+			for (let j = 0; j < size_bs; j++){
+				let row_text = "<br>"+dataframe[j];
+				coeff_table.insertAdjacentHTML("beforeend",row_text);};
+		}
+	}
+	holder.insertAdjacentHTML("beforeend",`Optimization done. <br>`);
+	
+	document.getElementById("best_value").style.display="Block";
+	document.getElementById("best_value").innerHTML = "";
+	document.getElementById("best_value").insertAdjacentHTML("beforeend",`Current Best energy value is: ${gs_energy_global}`);
+}
+
+function generateRandom() {
+
+	let rn;
+	dataframe.length = 0;
+	
+// Make calculations buttons visible once the basis set is generated
+
+	document.getElementById("best_value").style.display="None";
+	document.getElementById("energy_results").innerHTML="";
+	
+	get_nZ();
+	size_bf = n*(n+1)/2;
+	size_bs = m*size_bf;
+	
+// add random numbers (from a normal distribution) to the coefficients
+
+	for (let bi=0; bi < m; bi++){
+		for (let i = 0; i < n; i++) {
+			for (let j = i; j < n; j++) {
+				if (i == j) {
+					rn = getNormal(1.0,2.5).toPrecision(6);
+					if (n == 1){
+						rn = Math.abs(rn);
+					}
+					dataframe.push(rn);
+				} else {
+					rn = getNormal(0.01, 0.05).toPrecision(6);
+					dataframe.push(rn);
+				}
+			}
+		}
+	}
+
+// display new basis set =======================================================
+
+	let coeff_table = document.getElementById("coefficients");
+	coeff_table.style.display = "Block";
+	coeff_table.innerHTML = "current coefficients: ";
+	coeff_table.insertAdjacentHTML("beforeend","<br> =================================== <br>");
+	
+	for (let j = 0; j < size_bs; j++){
+		let row_text = `<br> ${dataframe[j]}`;
+		coeff_table.insertAdjacentHTML("beforeend",row_text);};
+	
+	dataframe.forEach((df,ind) => {dataframe[ind] = Number.parseFloat(dataframe[ind]);} );
+}
+
+// two functions below to produce random numbers from a normal distribution
+
+function boxMullerTransform() {
+    const u1 = Math.random();
+    const u2 = Math.random();
+    
+    const z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+    const z1 = Math.sqrt(-2.0 * Math.log(u1)) * Math.sin(2.0 * Math.PI * u2);
+    
+    return { z0, z1 };
+}
+
+function getNormal(mean, stddev) {
+    const { z0, _ } = boxMullerTransform();
+    
+    return z0 * stddev + mean;
+}
+
+</script>
+
+</html>
