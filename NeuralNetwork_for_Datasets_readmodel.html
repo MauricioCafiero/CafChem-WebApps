@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<title>Neural Network for Datasets</title>
+	<script language="JavaScript" src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.7.0/dist/tf.min.js"></script>
+	<script src="https://unpkg.com/@rdkit/rdkit/Code/MinimalLib/dist/RDKit_minimal.js"></script>
+	<style>
+		body {
+			color: White;
+			background-color: #26292B;
+			min-height: 100vh;
+			width: 95%;
+			font-size: 100%;}	
+		
+		#main_title {
+			border-radius: 25px;
+			display: flex;
+			flex-direction: row;
+			text-align: left;
+			margin: 0% 5% 2% 5%;
+			background-color: #5F7ADB;
+			width: 90%;}
+		
+		#menu_holder{
+			display: flex;
+			flex-direction: row;}
+			
+		.menu_box {
+			border-radius: 25px;
+			margin: 0% 2% 0% 2%;
+			text-align: center;
+			background-color: #DFFF00;
+			width: 30%;}
+			
+		#intro {
+			width: 95%;}
+
+		#main_flex {
+			display: flex;
+			flex-direction: row;
+			width: 100%;
+			text-align: left;
+			flex-wrap: wrap;
+			align-content: space-around;
+			justify-content: space-evenly;}
+	
+		#top_matter {
+			display: flex;
+			flex-direction: column;
+			width: 100%;}
+		
+		.big_flex_divs {
+			width: 90%;
+			text-align: left;
+			display: flex;
+			flex-wrap: wrap;
+			flex-direction: row;
+			border-radius: 25px; 
+			border: 5px solid #FF00FF;
+			margin: 2% 2% 2% 2%;
+			padding: 2%;
+			text-align: left;
+			align-content: space-around;
+			justify-content: space-evenly;
+		}
+		
+		.flex_divs {
+			width: 40%;
+			text-align: left;
+			display: flex;
+			flex-direction: column;
+			border-radius: 25px; 
+			border: 5px solid #DFFF00;
+			margin: 2% 2% 2% 2%;
+			padding: 2%;
+			text-align: center; }
+		
+		#prediction_holder {
+			display: block;}
+		
+		.inside_holders {
+			width: 45%;
+			text-align: center;
+			display: flex;
+			flex-wrap: wrap;
+			flex-direction: row;
+			padding: 1%;
+			align-content: space-around;
+			justify-content: space-evenly;}
+		
+		.inside_holder_long {
+			width: 90%;
+			text-align: left;
+			display: flex;
+			flex-wrap: wrap;
+			flex-direction: row;
+			align-content: space-around;
+			justify-content: space-evenly;}
+		
+		#rdkit_canvas{
+			background-color: white;}
+			
+		input::-webkit-outer-spin-button,
+		input::-webkit-inner-spin-button {
+  		-webkit-appearance: none;
+  		margin: 0;}
+
+		hr {color: white;}
+
+		input[type=number] {
+			text-align: center; 
+			-moz-appearance: textfield;}
+		
+		button {text-align: center;
+			width: 150px;
+			height: 25px;}
+	</style>
+</head>
+
+<body>
+	<div id="main_title"> <img  style="padding: 2% 1% 1% 5%;" src="images/comp_chem_2_small.jpg" alt="Computer"> 
+		<h1 style="padding: 50px;">Read in a previously trained deep Neural Network (DNN) to predict values.</h1>
+	</div>
+	
+	<div id="menu_holder">
+		<a class="menu_box" href="Chem_webapps_frontpage.html" style="color: #00008B;">Back to Chemistry Web Apps</a>
+	</div>
+	<br>
+		
+	<div id="top_matter">
+
+		<div id="intro"> This app allows you to read in a previously trained DNN model and them serve predictions based on smiles strings. 
+			<ul>
+				<li>All that is required is the model name you assigned previously.</li>
+			</ul>
+		<hr>
+		</div>
+		
+	<section id = "main_flex">
+		
+		
+		<div class = "flex_divs" id = "flex_div2">
+			<div id="save_holder" >
+				<label>Enter the filename for the model to load:</label>
+				<input type="text" id="model_name" placeholder="my_model" onwheel="this.blur()" style="width: 150px" >
+				<button style="margin: 0% 2% 0% 2%;" id="save_model_b" onclick="load_model()">
+					Load Model.</button> 
+			</div>
+			<div id="prediction_holder" >
+				<div><hr></div>
+				<label>Enter SMILES for prediction: </label>
+				<br>
+				<input type="text" id="pred_smiles" placeholder="CCO" onwheel="this.blur()" style="width: 150px" >
+				<div id = "answer_holder"></div>
+			</div>
+			
+		</div>
+		
+	</section>
+	<div id="table_section"></div>
+	<p>This is the work of Dr. Mauricio Cafiero and may be used widely though attribution is appreciated.</p>
+
+</body>
+
+<script>
+
+//Get tensorflow version and ensure RDKit is loaded. Declare global variables. ====================
+
+console.log(tf.version.tfjs);
+
+window.initRDKitModule()
+	.then(function(RDKit) {
+      	console.log("RDKit version: " + RDKit.version());
+       	window.RDKit = RDKit;
+	})
+    .catch(() => {
+        console.log("Could not load RDKit!")
+    });
+
+var model;
+var use_ln;
+var y_prop_name;
+var max_vals = new Array;
+
+// event listeners =================================================================================
+
+document.getElementById("pred_smiles").addEventListener("change", get_pred);
+
+function featurize(smiles_in){
+
+// featurize smiles strings using RDKit =========================================================================================
+
+	let features = new Array;
+
+	var smiles = smiles_in;
+	var mol = RDKit.get_mol(smiles);
+
+	var descriptors = JSON.parse(mol.get_descriptors());
+	descriptorsSorted = Object.keys(descriptors)
+		.sort(function(a,b) {return a.localeCompare(b, undefined, {sensitivity: 'base'});})
+    	.map(function(descriptor) {return [descriptor, descriptors[descriptor]]}) 
+	name_index = 0
+	descriptorsSorted.forEach(function(descriptor) {
+		features.push(descriptor[1]);
+		name_index++;
+	});
+	
+	return features;
+}
+
+async function load_model() {
+
+// save the model to local storage. =======================================================================================
+
+	let model_string = document.getElementById("model_name").value;
+	let model_div = document.getElementById("save_holder");
+
+	model = await tf.loadLayersModel(`localstorage://${model_string}`);
+	model_div.insertAdjacentHTML("beforeend",`${model_string} loaded`);
+	
+	max_vals = JSON.parse(localStorage.getItem(`${model_string}_scalers`));
+	use_ln = JSON.parse(localStorage.getItem(`${model_string}_trans`));
+	y_prop_name = JSON.parse(localStorage.getItem(`${model_string}_y_name`));
+}
+
+async function get_pred() {
+
+//accept smiles string, featurize, scale, and use the model to predict target value. ======================================
+
+	let smiles_in = document.getElementById("pred_smiles").value;
+	
+	let temp_array = new Array(43);
+	let pred_y = new Array(42);
+	let pred_scaled = new Array(1);
+	
+	temp_array = featurize(smiles_in);
+	temp_array.splice(39,1);
+	
+	temp_array.forEach((val,ind) => {pred_y[ind] = val/max_vals[ind]});
+	
+	pred_scaled[0] = pred_y;
+	
+	const t_tens = tf.tensor(pred_scaled);
+	const y_pred = await model.predict(t_tens);
+	var pred_arr = y_pred.arraySync();
+	
+	let pred_val = Number(pred_arr[0]);
+	
+	if (use_ln == "true"){
+		pred_val = Math.exp(pred_val);}
+	
+	var output = document.getElementById("answer_holder");
+	
+	output.insertAdjacentHTML("beforeEnd",`<br>DNN prediction of ${y_prop_name} value is ${pred_val.toPrecision(6)}`);
+	
+	y_pred.dispose();
+	t_tens.dispose();
+}
+
+</script>
+
+</html>
