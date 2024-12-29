@@ -443,6 +443,7 @@ var y_prop_name = new String();
 var max_columns = 10;
 var dataframe = new Array;
 var max_vals = new Array;
+var bad_points = new Array;
 
 // start molecule generator; event listeners =================================================================================
 var next_mol = get_molecule();
@@ -532,6 +533,22 @@ async function start_training() {
 	if (isNaN(Number(dataframe[0][y_ind]))){
 		alert("Target is not a numerical value. Please choose another target.");
 	} else {
+	
+		for (let i = 0; i < number_points; i++) {
+			y_target.push(dataframe[i][y_ind]);
+		}
+		console.log(`array lengths: ${smiles_array.length}, ${y_target.length}`);
+		
+// test x and y arrays for bad values and remove from dataset. 
+ 
+		test_data(y_target);
+		bad_points.sort((a,b) => b-a);
+		
+		for (let i = 0 ; i < bad_points.length; i++){
+			y_target.splice(bad_points[i],1);
+			smiles_array.splice(bad_points[i],1);
+			number_points -= 1;
+		}
 
 //sets up epoch holder ===========================================================================================================
 
@@ -550,15 +567,10 @@ async function start_training() {
 		for (let i = 0; i < smiles_array.length; i++) {
 			temp_array = featurize(smiles_array[i]);
 			temp_array.splice(39,1);
-			//console.table(temp_array);
 			X_feat[i] = temp_array;
 		};
 		
 // create y array ===========================================================================================================
-		
-		for (let i = 0; i < number_points; i++) {
-			y_target.push(dataframe[i][y_ind]);
-		}
 		
 		y_target.forEach(function(value,i) {y_target[i] = Number(value);});
 		
@@ -571,13 +583,41 @@ async function start_training() {
 			var y_transformed = y_target.map(y => Math.log(y));}
 		else {
 			var y_transformed = [...y_target];}
+		
+		console.log(`array lengths: ${smiles_array.length}, ${y_target.length}`);
 			
 // call	training ==============================================================================================================
 
 		wait_display.style.display = "None";
 		data_display.insertAdjacentHTML("beforeEnd", "Training for Neural Network Started.<br><hr><br>");
+		data_display.insertAdjacentHTML("beforeEnd", `removed ${bad_points.length}/${number_points} bad points from the dataset. <br><hr><br>`);
 		training_nn(X_scaled,y_transformed);
 	}
+}
+
+function test_data(y_target) {
+
+// test smiles to see if they can be featurized, and test target values to look for missing values ===============================
+
+	let bad_point_set = new Set();
+	
+	for (let i = 0; i < smiles_array.length; i++){
+		try {
+			var temp_mol = RDKit.get_mol(smiles_array[i]);
+		} catch {
+			var temp_mol = null};
+		if (temp_mol == null) {
+			bad_point_set.add(i);
+		}
+	}
+	
+	for (let i = 0; i < y_target.length; i++) {
+		if (y_target[i] == ""){
+			bad_point_set.add(i);
+		}
+	}
+	bad_points = [...bad_point_set];
+	//console.table(bad_points);
 }
 
 function featurize(smiles_in){
@@ -585,14 +625,14 @@ function featurize(smiles_in){
 // featurize smiles strings using RDKit =========================================================================================
 
 	let features = new Array;
-
+	
 	var smiles = smiles_in;
 	var mol = RDKit.get_mol(smiles);
 
 	var descriptors = JSON.parse(mol.get_descriptors());
 	descriptorsSorted = Object.keys(descriptors)
 		.sort(function(a,b) {return a.localeCompare(b, undefined, {sensitivity: 'base'});})
-    	.map(function(descriptor) {return [descriptor, descriptors[descriptor]]}) 
+		.map(function(descriptor) {return [descriptor, descriptors[descriptor]]}) 
 	name_index = 0
 	descriptorsSorted.forEach(function(descriptor) {
 		features.push(descriptor[1]);
@@ -951,12 +991,12 @@ function parse_csv(file_content){
 	
 	if (rows[0].includes(";")) {
 		var split_char = ";"
-		column_titles = rows[0].split(split_char);
-		column_titles = column_titles.map(x => x.replace(/"/g,""));}
+		column_titles = rows[0].split(split_char);}
 	else {
 		var split_char = ","
 		column_titles = rows[0].split(split_char);}
 	
+	column_titles = column_titles.map(x => x.replace(/"/g,""));
 	number_columns = column_titles.length
 
 	while (rows[number_points] == ""){
@@ -965,7 +1005,8 @@ function parse_csv(file_content){
 		console.log("deleting blank line at end of CSV!");}
 
 	for (i=0; i < number_points; i++){
-		dataframe.push(Array.from(rows[i+1].split(split_char)));}
+		dataframe.push(Array.from(rows[i+1].split(split_char)));
+		dataframe[i] = dataframe[i].map(x => x.replace(/"/g,""));}
 	
 //creates as many columns as needed in the "table section" and displays the data in each column ===========================
 
