@@ -444,6 +444,7 @@ var max_columns = 10;
 var dataframe = new Array;
 var max_vals = new Array;
 var bad_points = new Array;
+//var bad_feats = new Array;
 
 // start molecule generator; event listeners =================================================================================
 var next_mol = get_molecule();
@@ -562,8 +563,6 @@ async function start_training() {
 		
 //create X array ===========================================================================================================
 
-	//make splicing general if it finds a nan!
-
 		for (let i = 0; i < smiles_array.length; i++) {
 			temp_array = featurize(smiles_array[i]);
 			temp_array.splice(39,1);
@@ -600,6 +599,7 @@ function test_data(y_target) {
 // test smiles to see if they can be featurized, and test target values to look for missing values ===============================
 
 	let bad_point_set = new Set();
+	//let bad_feat_set = new Set();
 	
 	for (let i = 0; i < smiles_array.length; i++){
 		try {
@@ -611,13 +611,30 @@ function test_data(y_target) {
 		}
 	}
 	
+	/*let stop_check = 0, i = 0;
+	while (stop_check == 0) {
+		if (bad_point_set.has(i)) {
+			i += 1;
+			continue;
+		} else {
+			let temp_array =featurize(smiles_array[i]);
+			for (j = 0; j < temp_array.length; j++) {
+				if (isNaN(temp_array[j])) {
+					bad_feat_set.add(j);
+				}
+			}
+			stop_check = 1;
+		}
+	} */
+	
 	for (let i = 0; i < y_target.length; i++) {
 		if (y_target[i] == ""){
 			bad_point_set.add(i);
 		}
 	}
 	bad_points = [...bad_point_set];
-	//console.table(bad_points);
+	//bad_feats = [...bad_feat_set];
+	//console.table(bad_feats); 
 }
 
 function featurize(smiles_in){
@@ -656,7 +673,14 @@ function feat_scaler(x_in) {
 		var temp_col = x_in.map(function(value,index) { return value[i]; });
 		var max_val = Math.max(...temp_col);
 		max_vals.push(max_val);
-		var scaled_col = temp_col.map(x => x/max_val);
+		var scaled_col = new Array(0);
+		for (j = 0; j < temp_col.length; j++) {
+			if (max_val != 0) {
+				scaled_col.push(temp_col[j]/max_val);
+			} else {
+				scaled_col.push(temp_col[j]);
+			}
+		}
 		for (j = 0; j < x_in.length; j++) {
 			x_out[j][i] = scaled_col[j];}
 	}
@@ -898,13 +922,19 @@ async function get_pred() {
 	let smiles_in = document.getElementById("pred_smiles").value;
 	
 	let temp_array = new Array(43);
-	let pred_y = new Array(42);
+	let pred_y = new Array(0);
 	let pred_scaled = new Array(1);
 	
 	temp_array = featurize(smiles_in);
 	temp_array.splice(39,1);
 	
-	temp_array.forEach((val,ind) => {pred_y[ind] = val/max_vals[ind]});
+	for (let j = 0; j < temp_array.length; j++) {
+		if (max_vals[j] != 0) {
+			pred_y.push(temp_array[j]/max_vals[j]);
+		} else {
+			pred_y.push(temp_array[j]);
+		}
+	}
 	
 	pred_scaled[0] = pred_y;
 	

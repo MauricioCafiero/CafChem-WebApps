@@ -232,13 +232,19 @@ async function get_pred() {
 	let smiles_in = document.getElementById("pred_smiles").value;
 	
 	let temp_array = new Array(43);
-	let pred_y = new Array(42);
+	let pred_y = new Array(0);
 	let pred_scaled = new Array(1);
 	
 	temp_array = featurize(smiles_in);
 	temp_array.splice(39,1);
 	
-	temp_array.forEach((val,ind) => {pred_y[ind] = val/max_vals[ind]});
+	for (let j = 0; j < temp_array.length; j++) {
+		if (max_vals[j] != 0) {
+			pred_y.push(temp_array[j]/max_vals[j]);
+		} else {
+			pred_y.push(temp_array[j]);
+		}
+	}
 	
 	pred_scaled[0] = pred_y;
 	
