@@ -613,6 +613,9 @@ function test_data(y_target) {
 		}
 	}
 	
+	temp_mol.delete();
+	temp_mol = null;
+	
 	/*let stop_check = 0, i = 0;
 	while (stop_check == 0) {
 		if (bad_point_set.has(i)) {
@@ -657,6 +660,9 @@ function featurize(smiles_in){
 		features.push(descriptor[1]);
 		name_index++;
 	});
+	
+	mol.delete();
+	mol = null;
 	
 	return features;
 }
@@ -1006,6 +1012,9 @@ function display_molecule(smiles_in) {
 
 	var smiles_element = document.getElementById("mol_display_name");
 	smiles_element.innerHTML = "SMILES: " +smiles;
+	
+	mol.delete();
+	mol = null;
 }
 
 function read_csv(){
