@@ -375,6 +375,8 @@
 				and the machine-learning prediction for the validation set in <font color="#2320b3" style="background-color: white">blue</font>.
 			</div>
 			<br>
+			<div id="r2_holder"></div>
+			<br>
 			<div id="plot_holder1" >
 			</div>
 			
@@ -700,6 +702,7 @@ function clear_training() {
 	data_display.innerHTML = " "
 	
 	document.getElementById("answer_holder").innerHTML = "";
+	document.getElementById("r2_holder").innerHTML = "";
 	
 	plot_to_clear = document.getElementById("plot_holder1_plot")
 	c = plot_to_clear.getContext("2d");
@@ -813,8 +816,8 @@ async function training_nn(x_arr,y_arr) {
 	add_plot(y_train,pred_arr,"plot_holder1","#008B00");
 	add_plot(y_val,predval_arr,"plot_holder1","#2320b3");
 	
-	let accuracy_string = `<br><br>R<sup>2</sup> training: ${r2t.toPrecision(4)}<br>R<sup>2</sup> validation: ${r2v.toPrecision(4)}`;
-	document.getElementById("plot_explainer").insertAdjacentHTML("beforeend",accuracy_string);
+	let accuracy_string = `R<sup>2</sup> training: ${r2t.toPrecision(4)}<br>R<sup>2</sup> validation: ${r2v.toPrecision(4)}`;
+	document.getElementById("r2_holder").insertAdjacentHTML("beforeend",accuracy_string);
 	
 	document.getElementById("plot_explainer").scrollIntoView({ behavior: "smooth", block: "start", inline: "nearest" });
 
