@@ -805,10 +805,16 @@ async function training_nn(x_arr,y_arr) {
 
 	var pred_arr = y_pred.arraySync();
 	var predval_arr = y_predval.arraySync();
+	
+	const r2t = calcR2(y_train,pred_arr);
+	const r2v = calcR2(y_val,predval_arr);
 
-	make_plot(y_arr,y_arr,"plot_holder1")
-	add_plot(y_train,pred_arr,"plot_holder1","#008B00")
-	add_plot(y_val,predval_arr,"plot_holder1","#2320b3")
+	make_plot(y_arr,y_arr,"plot_holder1");
+	add_plot(y_train,pred_arr,"plot_holder1","#008B00");
+	add_plot(y_val,predval_arr,"plot_holder1","#2320b3");
+	
+	let accuracy_string = `<br><br>R<sup>2</sup> training: ${r2t.toPrecision(4)}<br>R<sup>2</sup> validation: ${r2v.toPrecision(4)}`;
+	document.getElementById("plot_explainer").insertAdjacentHTML("beforeend",accuracy_string);
 	
 	document.getElementById("plot_explainer").scrollIntoView({ behavior: "smooth", block: "start", inline: "nearest" });
 
@@ -823,6 +829,19 @@ async function training_nn(x_arr,y_arr) {
 	x_tens.dispose();
 	y_tval.dispose();
 	x_tval.dispose();
+}
+
+function calcR2(y_known,y_predicted) {
+	var SSR = 0.0, SST = 0.0, sum_y = 0.0;
+	
+	y_known.forEach(value => {sum_y += value;});
+	var ave_y = sum_y/y_known.length;
+
+	y_known.forEach(function(value,index) {SSR += Math.pow((value-y_predicted[index]),2)});
+	y_known.forEach(value => {SST += Math.pow((value-ave_y),2)});
+	let R2 = 1-(SSR/SST);	
+	
+	return R2;
 }
 
 async function save_model() {
