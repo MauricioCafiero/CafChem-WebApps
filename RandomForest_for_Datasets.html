@@ -768,7 +768,7 @@ async function get_pred() {
 	
 	var output = document.getElementById("answer_holder");
 	
-	output.insertAdjacentHTML("beforeEnd",`<br>DNN prediction of ${y_prop_name} is ${pred_val.toPrecision(6)}`);
+	output.insertAdjacentHTML("beforeEnd",`<br>RF prediction of ${y_prop_name} is ${pred_val.toPrecision(6)}`);
 }
 
 function* get_molecule() {
