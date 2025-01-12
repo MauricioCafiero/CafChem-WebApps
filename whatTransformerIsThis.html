@@ -66,7 +66,7 @@
 			text-align: center;
 			align-content: center;
 			border-radius: 25px;
-			background-color: #FF00FF;}
+			background-color: #DFFF00;}
 		
 		#canvas_img{
 			display: none;}
@@ -113,6 +113,20 @@
 			background-color: #000000;
 			display: none;}
 		
+		.upload_flex_div {
+			width: 90%;
+			text-align: left;
+			display: flex;
+			flex-wrap: wrap;
+			flex-direction: column;
+			border-radius: 25px; 
+			border: 5px solid #FF00FF;
+			margin: 2% 2% 2% 2%;
+			padding: 2%;
+			align-content: space-around;
+			justify-content: space-evenly;
+		}
+		
 		#capture_div {
 			position: absolute;
 			top: 10%;
@@ -153,7 +167,7 @@
 		<ul>
 			<li>Are you having trouble identifying your favorite Transformer? Use this neural network to identify it!</li>
 			<li>Upload a picture or take a picture with your mobile device, or even use a webcam on a desk/laptop.</li>
-			<li>Press the "Who's that Transformer?" button to see if it's Optimus, Megatron, Soundwave or Bumblebee!</li>
+			<li>The model will run and see if it's Optimus, Megatron, Soundwave or Bumblebee!</li>
 			<li>The model works best on pictures of toys in robot mode. I've had near 100% accuracy for the four characters above, regardless of toyline 
 			(vintage, generations, RID, Cyberverse, etc). Works okay for illustration/screen caps of characters.</li>
 			<li>Bumblebee and Soundwave (and maybe Optimus) should work in alt mode as well.</li> 
@@ -168,14 +182,17 @@
 			
 			<label id="drop_box">
 				<div id="drop_div" style="margin: auto;"> Drag and drop your image of a Transformer here! </div>
-				or use this to find your file and upload, or to use your mobile camera:
-				<input type="file" id="image_input" accept="image/*"> <br>
-				or use this to capture an image with your device camera (desktop): <br>
-				<button id="capture_image_b" onclick="capture_image()">Capture image from camera.</button>
 			</label>
-			<br>
-			<button id="process_image_b" onclick="process_image()" disabled>Who's that Transformer?.</button>
-			
+			<div class="upload_flex_div">
+				or use this button to upload an image or to use your <strong>mobile camera:</strong>
+				<input type="file" id="image_input" accept="image/*">
+			</div>
+				
+			<div class="upload_flex_div">
+				<label>or use this to capture an image with your device camera (desktop):</label>
+				<button id="capture_image_b" onclick="capture_image()">Capture image from camera.</button>
+			</div>
+				
 		</div>
 		
 		<div id = "flex_div2">
@@ -201,7 +218,6 @@
 console.log(tf.version.tfjs);
 
 // define global variables ================================================================================================
-file_input = document.getElementById("image_input");
 
 document.getElementById("drop_box").addEventListener('drop', event => {
 	event.preventDefault();
@@ -214,9 +230,9 @@ document.getElementById("drop_box").addEventListener('drop', event => {
 		text_over.innerHTML = "This is your image!";
 		const report = document.getElementById("report");
 		report.innerHTML = "";
+		process_image();
 		
-		document.getElementById("process_image_b").disabled = false;
-		}});
+}});
 
 document.getElementById("drop_box").addEventListener('dragover', event => {
 	event.preventDefault();});
@@ -224,6 +240,8 @@ document.getElementById("drop_box").addEventListener('dragover', event => {
 document.getElementById("capture_fake_button").addEventListener('click', event => {
 	capture();});
 	
+var file_input = document.getElementById("image_input");
+
 file_input.addEventListener('change', () => {
 	const [file] = file_input.files;
 	show_dropped_image(file);
@@ -233,8 +251,8 @@ file_input.addEventListener('change', () => {
 	
 	const report = document.getElementById("report");
 	report.innerHTML = "";
+	process_image();
 	
-	document.getElementById("process_image_b").disabled = false;
 	});
 
 function show_dropped_image(file) {
@@ -248,21 +266,25 @@ function show_dropped_image(file) {
 }
 
 async function process_image() {
-	const modelURL = "https://teachablemachine.withgoogle.com/models/BSYvkfPwS/model.json";
-	const metadataURL = "https://teachablemachine.withgoogle.com/models/BSYvkfPwS/metadata.json";
-	var model = await tmImage.load(modelURL, metadataURL);
-
+	
 	const waiting = document.getElementById("float_div");
 	waiting.style.display="Block";
 	
-	var maxPredictions = model.getTotalClasses();
+	try {
+		const modelURL = "https://teachablemachine.withgoogle.com/models/BSYvkfPwS/model.json";
+		const metadataURL = "https://teachablemachine.withgoogle.com/models/BSYvkfPwS/metadata.json";
+		model = await tmImage.load(modelURL, metadataURL);
+		var maxPredictions = model.getTotalClasses();
+		console.log(`The total classes in the model are: ${maxPredictions}`);
+	} catch {
+		alert("Could not load model!");
+	}
 	
 	const beaker = document.getElementById("placeholder");
 	beaker.crossOrigin = "Anonymous";
 	var predictions = await model.predict(beaker,false);
 	parse_predictions(predictions);
 	
-	//prediction.forEach((val) => {console.log(val.probability);});
 }
 
 function parse_predictions(predictions) {
@@ -337,9 +359,9 @@ function capture() {
 	const report = document.getElementById("report");
 	report.innerHTML = "";
 	
-	document.getElementById("process_image_b").disabled = false;
-	
 	stopStreamedVideo(preview);
+	
+	process_image();
 }
 
 function stopStreamedVideo(videoElem) {
