@@ -47,7 +47,7 @@
 			text-align: center;}
 		
 		#image_input {
-			margin: 2% 30% 2% 30%;}
+			margin: 2%;}
 		
 		#placeholder {
 			max-height: 300px;}
@@ -115,7 +115,8 @@
 		
 		.upload_flex_div {
 			width: 90%;
-			text-align: left;
+			text-align: center;
+			text-wrap: pretty;
 			display: flex;
 			flex-wrap: wrap;
 			flex-direction: column;
@@ -147,7 +148,7 @@
 			-moz-appearance: textfield;}
 		
 		button {text-align: center;
-			width: 200px;}
+			}
 
 		hr {color: white;}
 	</style>
@@ -184,12 +185,12 @@
 				<div id="drop_div" style="margin: auto;"> Drag and drop your image of a Transformer here! </div>
 			</label>
 			<div class="upload_flex_div">
-				or use this button to upload an image or to use your <strong>mobile camera:</strong>
+				<span>or use this button to upload an image or to use your <strong><big>mobile camera:</big></strong></span>
 				<input type="file" id="image_input" accept="image/*">
 			</div>
 				
 			<div class="upload_flex_div">
-				<label>or use this to capture an image with your device camera (desktop):</label>
+				<label>or use this to capture an image with your <strong><big>webcam (desktop):</big></strong></label>
 				<button id="capture_image_b" onclick="capture_image()">Capture image from camera.</button>
 			</div>
 				
