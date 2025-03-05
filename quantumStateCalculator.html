@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+	<script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+	<script src="https://unpkg.com/babel-standalone/babel.min.js"></script>
+	<script type="module" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+	<title>Quantum state calculator. </title>
+	<style>
+		body {
+			color: White;
+			background-color: #26292B;
+			min-height: 100vh;
+			width: 95%;}
+		
+		#main_title {
+			border-radius: 25px;
+			display: flex;
+			flex-direction: row;
+			text-align: left;
+			margin: 0% 5% 2% 5%;
+			background-color: #5F7ADB;
+			width: 90%;}
+		
+		#main_flex {
+			width: 100%;
+			display: flex;
+			flex-direction: row;
+			flex-wrap: wrap;
+			align-content: space-around;
+			justify-content: space-evenly;}
+		
+		#intro {
+			width: 100%;}
+		
+		#flex_box_1 {
+			width: 100%;
+			margin: 0% 2% 0% 2%;
+			display: flex;
+			flex-direction: row;
+			flex-wrap: wrap;
+			align-content: space-around;
+			justify-content: space-evenly;}
+		
+		#top_react {
+			margin: 0% 2% 0% 2%;}
+		
+		#flex_box_2 {
+			width: 100%;
+			display: flex;
+			flex-direction: row;
+			flex-wrap: wrap;
+			align-content: space-around;
+			justify-content: space-evenly;}
+		
+		#menu_holder{
+			display: flex;
+			flex-direction: row;}
+			
+		.menu_box {
+			border-radius: 25px;
+			margin: 0% 2% 0% 2%;
+			text-align: center;
+			background-color: #DFFF00;
+			width: 22%;}
+		
+		.blue_box {
+			width: 40%;
+			margin: 1%;
+			padding: 1%;
+			border: 5px solid #5F7ADB;
+			text-align: center;
+			align-content: center;}
+			
+		.green_box {
+			width: 40%;
+			margin: 1%;
+			padding: 1%;
+			border: 5px solid #DFFF00;
+			text-align: center;
+			align-content: center;}
+		
+		.long_big_text {
+			font-size: 1.5em;
+			margin: 1% 0% 1% 0%;
+			padding: 1% 5% 1% 5%;
+			text-align: center;
+			align-content: center;
+			border-radius: 25px;
+			display: flex;
+			flex-direction: row;
+			flex-wrap: wrap;
+			background-color: #5F7ADB;
+			width: 90%;}
+		
+		.long_no_border {
+			width: 80%;
+			margin: 1% 0% 1% 0%;
+			text-align: center;
+			align-content: center;
+			display: flex;
+			flex-direction: row;
+			flex-wrap: wrap;}
+		
+		#start, #buttons {
+			cursor: grab;
+		}
+		
+		a:hover {
+			color: #33ff96;
+			transition: 2s ease;
+			transform: scale(1.15);}
+			
+		a:link {
+			color: White;}	
+			
+		a:visited {
+			color: #DFFF00;}
+	</style>
+</head>
+
+<body>
+	<div id="main_title"> <img  style="padding: 2% 1% 1% 5%;" src="images/comp_chem_2_small.jpg" alt="Computer"> 
+		<h1 style="padding: 50px;">Calculate energy transitions for various quantum mechanical systems.</h1>
+	</div>
+	
+	<div id="menu_holder">
+		<a class="menu_box" href="Chem_webapps_frontpage.html" style="color: #00008B;">Chemistry Web Apps</a>
+	</div>
+	<br>
+	<div id="intro">
+		<h3>Use this app to calculate energy changes and transition wavelengths, frequencies and wavenumbers for
+		a one dimensional particle-in-a-box, a harmonic oscillator (vibration) and molecular rotation.</h3>
+		<details open>
+		<ul>
+			<li>To get started, choose a system type and enter your system parameters (default values are provided). 
+			The app will calculate the change in energy and transition wavelength, frequency and wavenumber given the 
+			stated inital and final quantum numbers (also changeable).  </li>
+			<li>PIB energies are calculated according to: <em>E<sub>n</sub> = (n<sup>2</sup>h<sup>2</sup>)/(8mL<sup>2</sup>)</em></li>
+			<li>Vibrational energies are calculated according to: <em>E<sub>v</sub> = h&nu;(</em>v<em> + 1/2</em>)</li>
+			<li>Rotational energies are calculated according to: <em>E<sub>J</sub> = &hbar;<sup>2</sup>/(2&mu;r<sup>2</sup>)[J(J+1)]</em></li>
+			<li>Wavelengths are calcuated according to: <em> &#955;	= hc/&#916;E</em></li>
+			<li>Frequencies are calcuated according to: <em> &nu;	= &#916;E/h</em></li>
+			<li>Wavenumbers are calcuated according to: <em> wavenumber	= &#916;E/hc</em></li>
+		</ul>
+		</details>
+	</div>
+	<hr>
+	
+
+	<section id = "main_flex">
+		<div id="choice" class="blue_box">
+		  <div>
+			<input type="radio" id="PIB" name="system" value="PIB" checked />
+			<label for="PIB">Particle in a 1-D Box </label>
+		  </div>
+		  <div>
+			<input type="radio" id="VIB" name="system" value="VIB" />
+			<label for="VIB">Vibrations / Harmonic Oscillator </label>
+		  </div>
+		  <div>
+			<input type="radio" id="ROT" name="system" value="ROT" />
+			<label for="ROT">Molecular Rotation </label>
+		  </div>
+		</div>
+		
+		<div id="start" class="blue_box">Press here to calculate.</div>
+		
+		<div id="flex_box_1"></div>
+	</section>
+	
+	<p>This is the work of Dr. Mauricio Cafiero and may be used widely though atribution is appreciated.</p>
+
+</body>
+
+<script type="text/babel">
+
+//var rootElement = document.getElementById("flex_box_1");
+//var root;
+var h = 6.626e-34;
+var c = 3.00E8;
+
+document.getElementById("choice").addEventListener("change", () => {
+  var target_div = document.getElementById("flex_box_1");
+  if (target_div) {
+    ReactDOM.unmountComponentAtNode(target_div);
+  }
+  start_interface();
+});
+
+document.getElementById("start").addEventListener("click", () => {
+  var target_div = document.getElementById("flex_box_1");
+  if (target_div) {
+    ReactDOM.unmountComponentAtNode(target_div);
+  }
+  start_interface();
+});
+
+function start_interface() {
+  const system_choice = document.getElementsByName("system");
+
+  for (let i = 0; i < system_choice.length; i++) {
+    if (system_choice[i].checked) {
+      var n = system_choice[i].value;
+    }
+  }
+
+  var data_x = {
+    formula: n,
+  };
+
+  ReactDOM.render(
+	<EnergyTransitions params={data_x} />,
+	document.getElementById("flex_box_1")
+  );
+}
+
+function PIBEnergy(ni, nf, L, m) {
+  let energy =
+    (Math.pow(h, 2) / 8 / m / Math.pow(L, 2)) *
+    (Math.pow(nf, 2) - Math.pow(ni, 2));
+  return energy;
+}
+
+function VIBEnergy(ni, nf, k, mu) {
+  let nu = Math.sqrt(k / mu) / 2 / Math.PI;
+  let energy = h * nu * (nf - ni);
+  return energy;
+}
+
+function ROTEnergy(ni,nf, r, mu) {
+	let hbar = h/2/Math.PI;
+	let B = Math.pow(hbar,2)/(2*mu*Math.pow(r,2));
+	let energy = B*((nf*(nf+1))-(ni*(ni+1)));
+	return energy;
+}
+
+function EtoL(deltaE) {
+	let wl = (h*c/deltaE)/(1E-9);
+	let fq = deltaE/h;
+	let wn = (deltaE/h/c)/100;
+	let transformed = {wl: wl, fq: fq, wn: wn};
+	return transformed
+}
+
+function EnergyTransitions({ params }) {
+  const [Nf, setNf] = React.useState(2);
+  const [Ni, setNi] = React.useState(1);
+  if (params.formula == "PIB") {
+    var EnergyFunction = PIBEnergy;
+    var eqnParams = { m: 9.1e-31, L: 10.0e-10, name: "Particle in a 1-D Box", qn: "n" };
+    var [Mass, setMass] = React.useState(eqnParams.m);
+    var [Other, setOther] = React.useState(eqnParams.L);
+  } else if (params.formula == "VIB") {
+    var EnergyFunction = VIBEnergy;
+    var eqnParams = { mu: 1.6139e-27, k: 480, name: "Vibration/Harmonic Oscillator", qn: "v" };
+    var [Mass, setMass] = React.useState(eqnParams.mu);
+    var [Other, setOther] = React.useState(eqnParams.k);
+  } else if (params.formula == "ROT") {
+    var EnergyFunction = ROTEnergy;
+    var eqnParams = { mu: 1.6139e-27, r: 1.27E-10, name: "Rotation", qn: "J" };
+    var [Mass, setMass] = React.useState(eqnParams.mu);
+    var [Other, setOther] = React.useState(eqnParams.r);
+  }
+  
+  var paramsList = [...Object.keys(eqnParams)];
+  
+  var energy = EnergyFunction(Ni, Nf, Other, Mass);
+  var transformed = EtoL(energy);
+
+  return (
+    <div
+      id="top_react"
+	  className="long_no_border"
+    >
+	
+		<div className="long_big_text"><span>{eqnParams.name}</span></div>
+	
+        <form className="green_box">
+          <label>{paramsList[0]} = </label>
+          <input
+            value={Mass}
+            type="number"
+            onChange={(event) => {
+              setMass(event.target.value);
+              eqnParams[paramsList[0]] = Mass;
+            }}
+            required
+          />
+          <br />
+          <br />
+          <label>{paramsList[1]} = </label>
+          <input
+            value={Other}
+            type="number"
+            onChange={(event) => {
+              setOther(event.target.value);
+              eqnParams[paramsList[1]] = Other;
+            }}
+            required
+          />
+        </form>
+      
+        <div className="green_box">
+          Initial state is: {Ni} <br/>
+		  Final state is {Nf}. <br />
+        </div>
+        
+		<div className="green_box">
+			&#916; E = {energy.toPrecision(4)} J. <br/>
+			&lambda; = {transformed.wl.toPrecision(4)} nm.<br/>
+			&nu; = {transformed.fq.toPrecision(4)} Hz.<br/>
+			wavenumber = {transformed.wn.toPrecision(4)} cm<sup>-1</sup>.<br/>
+		</div>
+		
+		<div id = "buttons" className="green_box">
+			<label> {eqnParams.qn}<sub>i</sub> = </label>
+			<input
+				value={Ni}
+				type="number"
+				onChange={(event) => {
+				setNi(event.target.value);
+				}}
+				required
+			/>
+          <br />
+          <br />
+			<label> {eqnParams.qn}<sub>f</sub> = </label>
+			<input
+				value={Nf}
+				type="number"
+				onChange={(event) => {
+				setNf(event.target.value);
+				}}
+				required
+			/>
+		</div>
+    
+	</div>
+  );
+}
+
+
+</script>
+
+</html>
